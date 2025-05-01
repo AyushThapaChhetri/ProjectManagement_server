@@ -1,0 +1,189 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+// CREATE TABLE "User" (
+//     "id" SERIAL PRIMARY KEY,
+//     "uid" UUID DEFAULT gen_random_uuid() NOT NULL,
+//     "fullName" TEXT NOT NULL,
+//     "email" TEXT UNIQUE NOT NULL,
+//     "password" TEXT NOT NULL,
+//     "gender" TEXT NOT NULL,
+//     "dob" TIMESTAMP NOT NULL,
+//     "createdAt" TIMESTAMP DEFAULT NOW() NOT NULL
+// );
+
+model User {
+  id Int @id @default(autoincrement())
+  uid        String  @default(uuid())
+  firstName  String
+  lastName   String
+  email     String   @unique
+  password  String   // Only store the actual password
+  gender    String
+  dob       DateTime
+  address       String?         
+  phone         String?         
+  title String?
+  avatarUrl     String?         // store profile image URL
+  createdAt DateTime @default(now())
+  refreshTokens RefreshToken[]
+  userRoles UserRole[]        //Link to roles
+  projects  Project[]        
+  tasks Task[]
+}
+
+
+// CREATE TABLE "RefreshToken"(
+//   rid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+//   userId INTEGER NOT NULL REFRENCES "User"(id) ON DELETE CASCADE,
+//   token TEXT NOT NULL UNIQUE,
+//   expiresAt TIMESTAMP NOT NULL,
+//   createdAt TIMESTAMP NOT NULL DEFAULT now()
+// );
+
+model RefreshToken{
+  rid String @id @default(uuid())
+  userId Int
+  token String @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// CREATE TABLE "ROLE"(
+//  id SERIAL PRIMARYKEY,
+//  name TEXT UNIQUE NOT NULL,
+// );
+
+model Role{
+  id Int @id @default(autoincrement())
+  name String @unique
+  userRoles UserRole[]
+  rolePrivileges RolePrivilege[]
+}
+
+// CREATE TABLE "Privilege"(
+//   id SERIAL PRIMARY KEY,
+//   name TEXT UNIQUE,
+//   description TEXT,
+// );
+
+model Privilege{
+  id Int @id @default(autoincrement())
+  name String @unique
+  description String?
+  rolePrivileges RolePrivilege[]
+
+}
+
+// CREATE TABLE "UserRole"(
+//   userId INTEGER NOT NULL REFRENCES "User"(id) ON DELETE CASCADE,
+//   roleId INTEGER NOT NULL REFRENCES "Role"(id) ON DELETE CASCADE,
+//   PRIMARY KEY (userId,roleId)
+// );
+
+model UserRole{
+  userId Int
+  roleId Int
+  user User @relation(fields:[userId], references: [id])
+  role Role @relation(fields:[roleId],references:[id])
+  @@id([userId,roleId])
+}
+
+// CREATE TABLE "RolePrivilege"(
+//   roleId INTEGER NOT NULL REFERENCES "Role"(id) ON DELETE CASCADE,
+//   userId  INTEGER NOT NULL REFRENCES "User"(id) ON DELETE CASCADE,
+//   PRIMARY KEY(userId, roleId)
+// );
+
+model RolePrivilege{
+  roleId Int
+  privilegeId Int
+  role Role @relation(fields:[roleId],references: [id])
+  privilege Privilege @relation(fields:[privilegeId],references: [id])
+  @@id([roleId,privilegeId])
+}
+
+
+// CREATE TABLE "Poject"(
+//   id SERIAL PRIMARY KEY,
+//   name TEXT NOT NULL,
+//   description TEXT,
+//   deadline TIMESTAMP,
+//   managerId INTEGER NOT NULL REFRENCES "User"(id) ON DELETE CASCADE,
+//   createdAt TIMESTAMP NOT NULL DEFAULT now()
+// );
+
+model Project{
+  id Int @id @default(autoincrement())
+  name String
+  description String?
+  deadline DateTime?
+  managerId Int
+  manager User @relation(fields: [managerId],references:[id])
+  tasks Task[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// CREATE TABLE "Todo" (
+//     "id" BIGSERIAL PRIMARY KEY,
+//     "projectName" TEXT NOT NULL,
+//     "taskName" TEXT NOT NULL,
+//     "priority" TEXT NOT NULL,
+//     "progressStatus" TEXT NOT NULL,
+//     "startDate" TEXT DEFAULT '',
+//     "endDate" TEXT DEFAULT '',
+//     "hoursTime" TEXT DEFAULT '0',
+//     "minutesTime" TEXT DEFAULT '0',
+//     "secondsTime" TEXT DEFAULT '0',
+//     "userId" INTEGER NOT NULL,
+//     "createdAt" TIMESTAMP DEFAULT NOW() NOT NULL,
+//     CONSTRAINT fk_todo_user FOREIGN KEY ("userId") 
+//         REFERENCES "User"("id") ON DELETE CASCADE
+// );
+
+
+
+
+// CREATE TABLE "Task"(
+//   id SERIAL PRIMARY KEY,
+//   projectId INTEGER NOT NULL REFERNCES "Project"(id),
+//   name TEXT NOT NULL,
+//   description TEXT,
+//   priority TEXT NOT NULL,
+//   status STRING NOT NULL,
+//   startDate TIMESTAMP,
+//   endDate TIMESTAMP,
+//   estimatedHours REAL,
+//   assignedToId INT REFERENCES "User"(id),
+//   createdAt TIMESTAMP NOT NULL DEFAULT now(),
+//   updatedAt TIMESTAMP NOT NULL DEFAULT now()
+// );
+
+
+
+model Task {
+  id             Int    @id @default(autoincrement())
+  projectId      Int
+  project        Project @relation(fields: [projectId], references: [id])
+  name           String
+  description    String?
+  priority       String
+  status         String
+  startDate      DateTime?
+  endDate        DateTime?
+  estimatedHours Float?
+  assignedToId   Int?
+  assignedTo     User? @relation(fields:[assignedToId],references:[id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}

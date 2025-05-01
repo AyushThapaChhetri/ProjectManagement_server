@@ -1,0 +1,211 @@
+{
+	"openapi": "3.0.0",
+	"components": {
+		"examples": {},
+		"headers": {},
+		"parameters": {},
+		"requestBodies": {},
+		"responses": {},
+		"schemas": {
+			"UserResponseData": {
+				"properties": {
+					"firstName": {
+						"type": "string",
+						"example": "John"
+					},
+					"lastName": {
+						"type": "string",
+						"example": "Doe"
+					},
+					"email": {
+						"type": "string",
+						"example": "john.doe@example.com"
+					},
+					"gender": {
+						"type": "string",
+						"example": "male"
+					},
+					"dob": {
+						"type": "string",
+						"example": "1995-06-15"
+					},
+					"address": {
+						"type": "string",
+						"nullable": true,
+						"example": "123 Street, City"
+					},
+					"phone": {
+						"type": "string",
+						"nullable": true,
+						"example": "9876543210"
+					},
+					"title": {
+						"type": "string",
+						"nullable": true,
+						"example": "Software Engineer"
+					},
+					"avatarUrl": {
+						"type": "string",
+						"nullable": true,
+						"example": "https://example.com/avatar.jpg"
+					},
+					"createdAt": {
+						"type": "string",
+						"example": "2025-04-25T12:34:56.789Z"
+					}
+				},
+				"required": [
+					"firstName",
+					"lastName",
+					"email",
+					"gender",
+					"dob",
+					"createdAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SignupResponse": {
+				"properties": {
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					},
+					"message": {
+						"type": "string",
+						"example": "User created successfully"
+					},
+					"data": {
+						"$ref": "#/components/schemas/UserResponseData"
+					}
+				},
+				"required": [
+					"statusCode",
+					"message",
+					"data"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SignupRequest": {
+				"properties": {
+					"firstName": {
+						"type": "string",
+						"example": "hero"
+					},
+					"lastName": {
+						"type": "string",
+						"example": "hero"
+					},
+					"emailName": {
+						"type": "string",
+						"example": "hero@gmail.com"
+					},
+					"emailPassword": {
+						"type": "string",
+						"example": "lafsU*sdf9dl"
+					},
+					"emailConfirmPassword": {
+						"type": "string",
+						"example": "lafsU*sdf9dl"
+					},
+					"gender": {
+						"type": "string",
+						"enum": [
+							"male",
+							"female",
+							"other"
+						],
+						"example": "male"
+					},
+					"emailDob": {
+						"type": "string",
+						"example": "2025-03-05"
+					},
+					"address": {
+						"type": "string",
+						"example": "123 Street, City"
+					},
+					"phone": {
+						"type": "string",
+						"example": "9876543210"
+					},
+					"title": {
+						"type": "string",
+						"example": "Software Engineer"
+					},
+					"avatarUrl": {
+						"type": "string",
+						"example": "https://example.com/avatar.jpg"
+					}
+				},
+				"required": [
+					"firstName",
+					"lastName",
+					"emailName",
+					"emailPassword",
+					"emailConfirmPassword",
+					"gender",
+					"emailDob"
+				],
+				"type": "object",
+				"additionalProperties": false
+			}
+		},
+		"securitySchemes": {
+			"jwt": {
+				"type": "apiKey",
+				"name": "Authorization",
+				"in": "header"
+			}
+		}
+	},
+	"info": {
+		"title": "server",
+		"version": "1.0.0",
+		"license": {
+			"name": "ISC"
+		},
+		"contact": {}
+	},
+	"paths": {
+		"/api/user/signup": {
+			"post": {
+				"operationId": "Create",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SignupResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"User"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SignupRequest"
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"servers": [
+		{
+			"url": "/"
+		}
+	]
+}
