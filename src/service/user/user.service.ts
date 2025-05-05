@@ -2,8 +2,11 @@ import Hash from "@app/libs/Hash";
 import UserRepository from "../../repository/user/user.repository";
 import {
   BadRequestError,
+  NotFoundError,
   UserAlreadyExistError,
 } from "../contract/errors/errors";
+import { UserUpdateRequest } from "../../dto/user/UserUpdateRequest.dto";
+import { UpdateUserParams } from "../../dto/user/UpdateUserParams.dto";
 
 class UserService {
   // async getCurrentUser(id: number) {
@@ -60,6 +63,28 @@ class UserService {
     });
 
     // return user;
+  }
+
+  async getAllPaginated(page: number, limit: number) {
+    return UserRepository.findAllPaginated(page, limit);
+  }
+
+  async getByIdWithRoles(id: number) {
+    const user = await UserRepository.getUserWithRoles(id);
+    if (!user) throw new NotFoundError("User not found");
+    return user;
+  }
+
+  async update(id: number, data: UpdateUserParams) {
+    const updateData = data.dob ? { ...data, dob: new Date(data.dob) } : data;
+
+    return UserRepository.update(id, updateData);
+  }
+
+  async delete(id: number) {
+    const user = await UserRepository.getUserWithRoles(id);
+    if (!user) throw new NotFoundError("User not found");
+    return UserRepository.delete(id);
   }
 }
 

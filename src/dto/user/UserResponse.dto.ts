@@ -34,11 +34,11 @@ export class UserResponseData {
   createdAt!: string;
 }
 
-export class SignupResponse {
+export class UserResponse {
   @Example(200)
   statusCode!: number;
 
-  @Example("User created successfully")
+  // @Example("User created successfully")
   message!: string;
 
   data!: UserResponseData;

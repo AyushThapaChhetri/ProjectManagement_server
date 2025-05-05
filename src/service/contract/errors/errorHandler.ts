@@ -1,5 +1,10 @@
 import { NextFunction, Request, Response } from "express";
-import { BadRequestError, UnauthorizedError } from "./errors";
+import {
+  BadRequestError,
+  UnauthorizedError,
+  ForbiddenError,
+  NotFoundError,
+} from "./errors";
 import { DBError } from "./dbErrorHandler";
 
 class _HttpErrorHandler {
@@ -29,7 +34,15 @@ class _HttpErrorHandler {
           res.status(error.statusCode).json({
             message: error.message,
           });
+        } else if (error instanceof NotFoundError) {
+          res.status(error.statusCode).json({
+            message: error.message,
+          });
         } else if (error instanceof UnauthorizedError) {
+          res.status(error.statusCode).json({
+            message: error.message,
+          });
+        } else if (error instanceof ForbiddenError) {
           res.status(error.statusCode).json({
             message: error.message,
           });
@@ -58,6 +71,8 @@ class _HttpErrorHandler {
     if (err instanceof BadRequestError) {
       res.status(err.statusCode).json({ message: err.message });
     } else if (err instanceof UnauthorizedError) {
+      res.status(err.statusCode).json({ message: err.message });
+    } else if (err instanceof ForbiddenError) {
       res.status(err.statusCode).json({ message: err.message });
     } else if (err instanceof DBError) {
       res.status(err.statusCode).json({ message: err.message });

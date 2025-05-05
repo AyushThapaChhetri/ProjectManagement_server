@@ -59,7 +59,7 @@
 //     }
 //   }
 
-//   // async create(req: ExRequest, res: Response) {
+// async create(req: ExRequest, res: Response) {
 //   @Security("jwt")
 //   @SuccessResponse("200", "Todo Insert Successful")
 //   @Response<ValidationErrorResponse>(422, "Validation failed")
@@ -209,4 +209,4 @@
 //   }
 // }
 
-// // export const TodoController = new _TodoController();
+// export const TodoController = new _TodoController();
