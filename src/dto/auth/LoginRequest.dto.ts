@@ -6,7 +6,4 @@ export class LoginRequest {
 
   @Example("lafsU*sdf9dl")
   emailPassword!: string;
-
-  @Example(false)
-  emailRemember!: boolean;
 }

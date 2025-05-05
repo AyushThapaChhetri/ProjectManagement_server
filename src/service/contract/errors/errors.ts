@@ -20,7 +20,12 @@ export class UnauthorizedError extends BaseServerError {
     super(401, message, log);
   }
 }
-export class UserNotFoundError extends BaseServerError {
+export class ForbiddenError extends BaseServerError {
+  constructor(message: string, log?: Object) {
+    super(403, message, log);
+  }
+}
+export class NotFoundError extends BaseServerError {
   constructor(message: string, log?: Object) {
     super(404, message, log);
   }

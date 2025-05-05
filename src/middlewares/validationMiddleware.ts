@@ -1,10 +1,13 @@
 import * as Yup from "yup";
 import { Request, Response, NextFunction } from "express";
 
-export const validate_schemas = (schema: Yup.ObjectSchema<any>) => {
+export const validate_schemas = (
+  schema: Yup.ObjectSchema<any>,
+  source: "body" | "params" | "query" = "body" // default is body
+) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await schema.validate(req.body, { abortEarly: false });
+      await schema.validate(req[source], { abortEarly: false });
       next(); // Move to the next step if validation passes
     } catch (error) {
       const formattedErrors = Array.from(
