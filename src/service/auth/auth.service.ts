@@ -18,6 +18,7 @@ class _AuthService {
 
     let user = await prisma.user.findFirst({
       where: { email },
+      include: { userRoles: { include: { role: true } } },
     });
     if (!user) {
       console.log("Email donesn't exists: ", email);

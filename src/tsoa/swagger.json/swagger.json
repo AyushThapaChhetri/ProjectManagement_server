@@ -72,6 +72,19 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"NotFoundErrorResponse": {
+				"properties": {
+					"error": {
+						"type": "string",
+						"example": "Not found Error"
+					}
+				},
+				"required": [
+					"error"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"UserResponseData": {
 				"properties": {
 					"firstName": {
@@ -117,6 +130,16 @@
 					"createdAt": {
 						"type": "string",
 						"example": "2025-04-25T12:34:56.789Z"
+					},
+					"roles": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"example": [
+							"Admin",
+							"Editor"
+						]
 					}
 				},
 				"required": [
@@ -125,7 +148,8 @@
 					"email",
 					"gender",
 					"dob",
-					"createdAt"
+					"createdAt",
+					"roles"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -303,6 +327,26 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"RoleUpdateRequest": {
+				"properties": {
+					"roleIds": {
+						"items": {
+							"type": "number",
+							"format": "double"
+						},
+						"type": "array",
+						"example": [
+							1,
+							2
+						]
+					}
+				},
+				"required": [
+					"roleIds"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"Record_string.never_": {
 				"properties": {},
 				"type": "object",
@@ -328,6 +372,255 @@
 					"message",
 					"data",
 					"statusCode"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"TaskPriority": {
+				"enum": [
+					"low",
+					"medium",
+					"high"
+				],
+				"type": "string"
+			},
+			"TaskStatus": {
+				"enum": [
+					"todo",
+					"progress",
+					"completed"
+				],
+				"type": "string"
+			},
+			"TaskResponseData": {
+				"properties": {
+					"id": {
+						"type": "number",
+						"format": "double",
+						"example": 1
+					},
+					"name": {
+						"type": "string",
+						"example": "Design UI"
+					},
+					"description": {
+						"type": "string",
+						"nullable": true,
+						"example": "Design the dashboard UI for admin panel."
+					},
+					"priority": {
+						"$ref": "#/components/schemas/TaskPriority",
+						"example": "low"
+					},
+					"status": {
+						"$ref": "#/components/schemas/TaskStatus",
+						"example": "todo"
+					},
+					"startDate": {
+						"type": "string",
+						"nullable": true,
+						"example": "2025-05-06T10:00:00.000Z"
+					},
+					"endDate": {
+						"type": "string",
+						"nullable": true,
+						"example": "2025-05-10T10:00:00.000Z"
+					},
+					"estimatedHours": {
+						"type": "number",
+						"format": "double",
+						"nullable": true,
+						"example": 12.5
+					},
+					"projectId": {
+						"type": "number",
+						"format": "double",
+						"example": 3
+					},
+					"assignedToId": {
+						"type": "number",
+						"format": "double",
+						"nullable": true,
+						"example": 5
+					},
+					"createdAt": {
+						"type": "string",
+						"example": "2025-05-05T12:00:00.000Z"
+					},
+					"updatedAt": {
+						"type": "string",
+						"example": "2025-05-05T14:00:00.000Z"
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"priority",
+					"status",
+					"projectId",
+					"createdAt",
+					"updatedAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_TaskResponseData_": {
+				"properties": {
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"$ref": "#/components/schemas/TaskResponseData"
+					}
+				},
+				"required": [
+					"statusCode",
+					"message",
+					"data"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"TaskRequest": {
+				"properties": {
+					"name": {
+						"type": "string",
+						"example": "Design the dashboard UI"
+					},
+					"description": {
+						"type": "string",
+						"example": "Create a modern and responsive UI for the admin dashboard"
+					},
+					"priority": {
+						"$ref": "#/components/schemas/TaskPriority",
+						"example": "low"
+					},
+					"status": {
+						"$ref": "#/components/schemas/TaskStatus",
+						"example": "todo"
+					},
+					"startDate": {
+						"type": "string",
+						"example": "2025-05-10T09:00:00Z"
+					},
+					"endDate": {
+						"type": "string",
+						"example": "2025-05-15T17:00:00Z"
+					},
+					"estimatedHours": {
+						"type": "number",
+						"format": "double",
+						"example": 12.5
+					},
+					"assignedToId": {
+						"type": "number",
+						"format": "double",
+						"example": 3
+					},
+					"projectId": {
+						"type": "number",
+						"format": "double",
+						"example": 1
+					}
+				},
+				"required": [
+					"name",
+					"priority",
+					"status",
+					"projectId"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_any_": {
+				"properties": {
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {}
+				},
+				"required": [
+					"statusCode",
+					"message",
+					"data"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"PatchTaskRequest": {
+				"properties": {
+					"name": {
+						"type": "string",
+						"example": "Design the dashboard UI"
+					},
+					"description": {
+						"type": "string",
+						"example": "Create a modern and responsive UI for the admin dashboard"
+					},
+					"priority": {
+						"$ref": "#/components/schemas/TaskPriority",
+						"example": "low"
+					},
+					"status": {
+						"$ref": "#/components/schemas/TaskStatus",
+						"example": "todo"
+					},
+					"startDate": {
+						"type": "string",
+						"example": "2025-05-10T09:00:00Z"
+					},
+					"endDate": {
+						"type": "string",
+						"example": "2025-05-15T17:00:00Z"
+					},
+					"estimatedHours": {
+						"type": "number",
+						"format": "double",
+						"example": 12.5
+					},
+					"assignedToId": {
+						"type": "number",
+						"format": "double",
+						"example": 3
+					},
+					"projectId": {
+						"type": "number",
+						"format": "double",
+						"example": 1
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse____": {
+				"properties": {
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"properties": {},
+						"type": "object"
+					}
+				},
+				"required": [
+					"statusCode",
+					"message",
+					"data"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -505,19 +798,6 @@
 				},
 				"required": [
 					"message"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"NotFoundErrorResponse": {
-				"properties": {
-					"error": {
-						"type": "string",
-						"example": "User not found"
-					}
-				},
-				"required": [
-					"error"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -880,6 +1160,536 @@
 				]
 			}
 		},
+		"/api/user/{id}/role": {
+			"patch": {
+				"operationId": "ChangeRole",
+				"responses": {
+					"204": {
+						"description": "No content"
+					}
+				},
+				"tags": [
+					"User"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RoleUpdateRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/tasks": {
+			"post": {
+				"operationId": "Create",
+				"responses": {
+					"200": {
+						"description": "Task Created Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_TaskResponseData_"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Create New Task",
+				"tags": [
+					"Tasks"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"description": "Task creation data including name, status, priority, etc.",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/TaskRequest",
+								"description": "Task creation data including name, status, priority, etc."
+							}
+						}
+					}
+				}
+			},
+			"get": {
+				"operationId": "GetAll",
+				"responses": {
+					"200": {
+						"description": "Task Retrieved Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"allOf": [
+										{
+											"$ref": "#/components/schemas/ApiResponse_any_"
+										},
+										{
+											"properties": {
+												"total": {}
+											},
+											"required": [
+												"total"
+											],
+											"type": "object"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Tasks"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "page",
+						"required": false,
+						"schema": {
+							"default": 1,
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "limit",
+						"required": false,
+						"schema": {
+							"default": 10,
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			}
+		},
+		"/api/tasks/{taskId}": {
+			"get": {
+				"operationId": "GetById",
+				"responses": {
+					"200": {
+						"description": "Task Retrieved Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_any_"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Tasks"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "taskId",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			},
+			"put": {
+				"operationId": "Update",
+				"responses": {
+					"200": {
+						"description": "Task Updated Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_any_"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Tasks"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "taskId",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/TaskRequest"
+							}
+						}
+					}
+				}
+			},
+			"patch": {
+				"operationId": "Patch",
+				"responses": {
+					"200": {
+						"description": "Task Updated Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_any_"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Tasks"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "taskId",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/PatchTaskRequest"
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "Delete",
+				"responses": {
+					"200": {
+						"description": "Task Deleted Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse____"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Tasks"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "taskId",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			}
+		},
 		"/api/projects": {
 			"post": {
 				"operationId": "Create",
@@ -914,6 +1724,16 @@
 							}
 						}
 					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
 					"422": {
 						"description": "Validation failed",
 						"content": {
@@ -944,6 +1764,104 @@
 						}
 					}
 				}
+			},
+			"get": {
+				"operationId": "GetAll",
+				"responses": {
+					"200": {
+						"description": "Project Retrieved Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"allOf": [
+										{
+											"$ref": "#/components/schemas/ApiResponse_any_"
+										},
+										{
+											"properties": {
+												"total": {}
+											},
+											"required": [
+												"total"
+											],
+											"type": "object"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Projects"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "page",
+						"required": false,
+						"schema": {
+							"default": 1,
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "limit",
+						"required": false,
+						"schema": {
+							"default": 10,
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
 			}
 		},
 		"/api/projects/{projectId}": {
@@ -976,6 +1894,16 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
 								}
 							}
 						}
@@ -1040,6 +1968,16 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
 								}
 							}
 						}
@@ -1114,6 +2052,16 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
 								}
 							}
 						}

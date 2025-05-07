@@ -7,6 +7,7 @@ import {
   Delete,
   Get,
   Middlewares,
+  Patch,
   Path,
   Post,
   Put,
@@ -32,6 +33,7 @@ import { UserUpdateRequest } from "../dto/user/UserUpdateRequest.dto";
 import { DeleteUserResponse } from "../dto/user/UserDeleteResponse.dto";
 import { UpdateUserParams } from "../dto/user/UpdateUserParams.dto";
 import { UserListResponse } from "../dto/user/UserListResponse.dto";
+import { RoleUpdateRequest } from "../dto/user/RoleRequest.dto";
 
 // @Response<ValidationErrorResponse>(422, "Validation failed")
 // @Response<BadRequestErrorResponse>(400, "BadRequestError")
@@ -146,16 +148,33 @@ export class _UserController extends BaseController {
 
     const updatedUser = await UserService.update(id, params);
 
-    const serialized = {
-      ...updatedUser,
-      dob: updatedUser.dob.toISOString(),
-      createdAt: updatedUser.createdAt.toISOString(),
-    };
+    // const serialized = {
+    //   ...updatedUser,
+    //   dob: updatedUser.dob.toISOString(),
+    //   createdAt: updatedUser.createdAt.toISOString(),
+    // };
 
     return super.putOk({
       message: "User updated successfully",
       data: UserDTO.single(updatedUser),
     });
+  }
+
+  @Patch("{id}/role")
+  @Middlewares([
+    authorize("override_permissions"), // Combines self-access + privilege
+  ])
+  async changeRole(@Path() id: number, @Body() body: RoleUpdateRequest) {
+    // const updatedUser = await UserService.updateUserRoles(id, body.roleIds);
+    // const serialized = {
+    //   ...updatedUser,
+    //   dob: updatedUser.dob.toISOString(),
+    //   createdAt: updatedUser.createdAt.toISOString(),
+    // };
+    // return super.putOk({
+    //   message: "Role updated successfully",
+    //   data: updatedUser,
+    // });
   }
 
   // DELETE USER

@@ -32,6 +32,7 @@ class UserRepository extends BaseRepository {
     const user = await this.dbCatch(
       prisma.user.create({
         data: params,
+        include: { userRoles: { include: { role: true } } },
       })
     );
 
@@ -106,6 +107,7 @@ class UserRepository extends BaseRepository {
     return await prisma.user.update({
       where: { id },
       data,
+      include: { userRoles: { include: { role: true } } },
     });
   }
 

@@ -37,12 +37,14 @@ import ProjectService from "@app/service/project/project.service";
 import { ProjectRequest } from "../dto/project/ProjectRequest.dto";
 import { ProjectResponse } from "../dto/project/ProjectResponse.dto";
 import { NotFoundError } from "@app/service/contract/errors/errors";
+import { NotFoundErrorResponse } from "../dto/Error/NotFoundErrorResponse.dto";
 
 // Controller
 @Security("jwt")
 @Response<ValidationErrorResponse>(422, "Validation failed")
 @Response<UnauthorizedErrorResponse>(401, "Unauthorized")
 @Response<ForbiddenErrorResponse>(403, "Forbidden")
+@Response<NotFoundErrorResponse>(404, "Not Found Error")
 @Route("api/projects")
 @Tags("Projects")
 export class ProjectController extends BaseController {
@@ -80,7 +82,28 @@ export class ProjectController extends BaseController {
     });
   }
 
-  //   @Security("jwt")
+  @SuccessResponse("200", "Project Retrieved Successfully")
+  @Get()
+  @Middlewares(checkPrivilege("read_project"))
+  async getAll(
+    @Request() req: ExRequest,
+    @Query() page: number = 1,
+    @Query() limit: number = 10
+  ) {
+    const { projects, total } = await ProjectService.getAllPaginated(
+      page,
+      limit
+    );
+
+    return Object.assign(
+      super.getOk({
+        message: "Projects fetched successfully",
+        data: projects,
+      }),
+      { total }
+    );
+  }
+
   @SuccessResponse("200", "Project Retrieved Successfully")
   @Middlewares([
     validate_schemas(getProjectValidationSchema, "params"),
@@ -88,7 +111,7 @@ export class ProjectController extends BaseController {
   ])
   @Get("{projectId}")
   public async getById(
-    @Request() req: ExRequest,
+    // @Request() req: ExRequest,
     @Path() projectId: number
   ): Promise<ProjectResponse> {
     const project = await ProjectService.getById(projectId);
@@ -103,7 +126,6 @@ export class ProjectController extends BaseController {
     });
   }
 
-  //   @Security("jwt")
   @SuccessResponse("200", "Project Updated Successfully")
   @Middlewares([
     validate_schemas(updateProjectValidationSchema, "body"),
@@ -113,6 +135,7 @@ export class ProjectController extends BaseController {
   @Put("{projectId}")
   public async update(
     @Request() req: ExRequest,
+    // req: Request,
     @Path() projectId: number,
     @Body() body: ProjectRequest
   ): Promise<ProjectResponse> {
@@ -141,7 +164,6 @@ export class ProjectController extends BaseController {
     };
   }
 
-  //   @Security("jwt")
   @SuccessResponse("200", "Project Deleted Successfully")
   // forbidden 403
   @Middlewares([

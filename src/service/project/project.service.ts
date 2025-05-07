@@ -7,7 +7,8 @@ import {
   NotFoundError,
 } from "../contract/errors/errors";
 import { User } from "@prisma/client";
-import UserRepository from "../../repository/user/user.repository";
+
+import userService from "../user/user.service";
 
 class ProjectService {
   async create(projectData: {
@@ -25,7 +26,9 @@ class ProjectService {
     return ProjectRepository.create(projectData);
   }
 
-  // Add these methods to the existing service
+  async getAllPaginated(page: number, limit: number) {
+    return ProjectRepository.findAllPaginated(page, limit);
+  }
 
   async getById(projectId: number) {
     return ProjectRepository.findById(projectId);
@@ -60,7 +63,7 @@ class ProjectService {
 
     //  Ownership check
     // Fetch the user with roles from the repository
-    const user = await UserRepository.getUserWithRoles(currentUser.id);
+    const user = await userService.getUserWithRoles(currentUser.id);
 
     if (!user) {
       throw new NotFoundError("User not found");
