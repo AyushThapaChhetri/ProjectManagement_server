@@ -32,6 +32,10 @@ export class UserResponseData {
 
   @Example("2025-04-25T12:34:56.789Z")
   createdAt!: string;
+
+  // Add roles as an array of strings (if a user can have multiple roles)
+  @Example(["Admin", "Editor"])
+  roles!: string[];
 }
 
 export class UserResponse {

@@ -49,7 +49,7 @@ class UserService {
 
     const hashedPassword = await Hash.createHash(password);
 
-    return await UserRepository.create({
+    const user = await UserRepository.create({
       firstName,
       lastName,
       email,
@@ -62,7 +62,7 @@ class UserService {
       avatarUrl,
     });
 
-    // return user;
+    return user;
   }
 
   async getAllPaginated(page: number, limit: number) {
@@ -70,7 +70,7 @@ class UserService {
   }
 
   async getByIdWithRoles(id: number) {
-    const user = await UserRepository.getUserWithRoles(id);
+    const user = await this.getUserWithRoles(id);
     if (!user) throw new NotFoundError("User not found");
     return user;
   }
@@ -78,11 +78,15 @@ class UserService {
   async update(id: number, data: UpdateUserParams) {
     const updateData = data.dob ? { ...data, dob: new Date(data.dob) } : data;
 
-    return UserRepository.update(id, updateData);
+    return await UserRepository.update(id, updateData);
+  }
+
+  async getUserWithRoles(id: number) {
+    return await UserRepository.getUserWithRoles(id);
   }
 
   async delete(id: number) {
-    const user = await UserRepository.getUserWithRoles(id);
+    const user = await this.getUserWithRoles(id);
     if (!user) throw new NotFoundError("User not found");
     return UserRepository.delete(id);
   }

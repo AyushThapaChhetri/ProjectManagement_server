@@ -1,5 +1,6 @@
 import prisma from "@app/config/db.config";
 import BaseRepository from "../contract/baseRepository";
+import { BadRequestError } from "@app/service/contract/errors/errors";
 
 class ProjectRepository extends BaseRepository {
   async create(data: {
@@ -21,6 +22,18 @@ class ProjectRepository extends BaseRepository {
     );
   }
 
+  async findAllPaginated(page: number, limit: number) {
+    const [total, projects] = await Promise.all([
+      prisma.project.count(),
+      prisma.project.findMany({
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+      }),
+    ]);
+    return { projects, total };
+  }
+
   async updateProject(
     projectId: number,
     data: {
@@ -29,6 +42,12 @@ class ProjectRepository extends BaseRepository {
       deadline?: Date;
     }
   ) {
+    // prisma.$transaction(async (tx){
+    //   await tx.role.create({data:{name:"BAC"}});
+    //   const role = await prisma.role.findFirst({where:{name:"BAC"}})
+    //   throw new BadRequestError("");
+    // });
+
     return super.dbCatch(
       prisma.project.update({
         where: { id: projectId },

@@ -1,6 +1,6 @@
 import { Example } from "tsoa";
 
 export class NotFoundErrorResponse {
-  @Example("User not found")
+  @Example("Not found Error")
   error!: string;
 }
