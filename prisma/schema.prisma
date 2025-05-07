@@ -22,7 +22,7 @@ datasource db {
 
 model User {
   id Int @id @default(autoincrement())
-  uid        String  @default(uuid())
+  uid        String  @default(uuid()) @unique
   firstName  String
   lastName   String
   email     String   @unique
@@ -50,7 +50,7 @@ model User {
 // );
 
 model RefreshToken{
-  rid String @id @default(uuid())
+  rid String @id @default(uuid()) @unique
   userId Int
   token String @unique
   expiresAt DateTime
@@ -65,6 +65,7 @@ model RefreshToken{
 
 model Role{
   id Int @id @default(autoincrement())
+  uid String @default(uuid()) @unique
   name String @unique
   userRoles UserRole[]
   rolePrivileges RolePrivilege[]
@@ -78,6 +79,7 @@ model Role{
 
 model Privilege{
   id Int @id @default(autoincrement())
+  uid String @default(uuid()) @unique
   name String @unique
   description String?
   rolePrivileges RolePrivilege[]
@@ -98,10 +100,11 @@ model UserRole{
   @@id([userId,roleId])
 }
 
-// CREATE TABLE "RolePrivilege"(
+// -- Updated SQL comment for clarity
+// CREATE TABLE "RolePrivilege" (
 //   roleId INTEGER NOT NULL REFERENCES "Role"(id) ON DELETE CASCADE,
-//   userId  INTEGER NOT NULL REFRENCES "User"(id) ON DELETE CASCADE,
-//   PRIMARY KEY(userId, roleId)
+//   privilegeId INTEGER NOT NULL REFERENCES "Privilege"(id) ON DELETE CASCADE,
+//   PRIMARY KEY (roleId, privilegeId)
 // );
 
 model RolePrivilege{
@@ -124,6 +127,7 @@ model RolePrivilege{
 
 model Project{
   id Int @id @default(autoincrement())
+  uid String @default(uuid()) @unique
   name String
   description String?
   deadline DateTime?
@@ -172,7 +176,9 @@ model Project{
 
 
 model Task {
-  id             Int    @id @default(autoincrement())
+  id  Int @id @default(autoincrement())
+  uid String @default(uuid()) @unique
+
   projectId      Int
   project        Project @relation(fields: [projectId], references: [id])
   name           String
