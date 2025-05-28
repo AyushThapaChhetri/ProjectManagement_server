@@ -7,7 +7,14 @@ export const validate_schemas = (
 ) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await schema.validate(req[source], { abortEarly: false });
+      // Validate and get the transformed data
+      const validatedData = await schema.validate(req[source], {
+        abortEarly: false,
+        stripUnknown: true, // removes extra fields not defined in schema
+        strict: false, // allows transforms to run (like "" → null)
+      });
+      // Assign the transformed data back to the request
+      req[source] = validatedData; // <-- THIS IS THE CRITICAL CHANGE
       next(); // Move to the next step if validation passes
     } catch (error) {
       const formattedErrors = Array.from(

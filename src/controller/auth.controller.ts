@@ -52,14 +52,14 @@ export class _AuthController extends BaseController {
   @Response<NotFoundErrorResponse>(404, "User not found")
   @Response<ValidationErrorResponse>(422, "Validation error", {
     message: "Validation failed",
-    errors: [{ field: "emailName", message: "Please Enter Email" }],
+    errors: [{ field: "email", message: "Please Enter Email" }],
   })
   @Response<InternalErrorResponse>(500, "Internal server error")
   @Middlewares(validate_schemas(loginValidationSchema))
   // async login(req: Request, res: Response) {
   @Post("login")
   public async login(@Body() loginData: LoginRequest): Promise<LoginResponse> {
-    const { emailName: email, emailPassword: password } = loginData;
+    const { email, password } = loginData;
     // const {
     //   emailName: email, // Rename emailName to email to match schema
     //   emailPassword: password,

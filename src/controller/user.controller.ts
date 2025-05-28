@@ -1,6 +1,9 @@
 import BaseController from "./contract/baseController.contract";
 import { Request as ExRequest } from "express";
-import { BadRequestError } from "@app/service/contract/errors/errors";
+import {
+  BadRequestError,
+  NotFoundError,
+} from "@app/service/contract/errors/errors";
 import { UserDTO } from "../dto/user/user.dto";
 import {
   Body,
@@ -28,12 +31,16 @@ import { ErrorResponse } from "../dto/Error/ErrorResponse.dto";
 import { InternalErrorResponse } from "../dto/Error/InternalErrorResponse.dto";
 import { authorize } from "../middlewares/authorization";
 import { validate_schemas } from "@app/middlewares/validationMiddleware";
-import { userUpdateSchema } from "./validation/user.validation";
+import {
+  UserSignupValidationSchema,
+  userUpdateSchema,
+} from "./validation/user.validation";
 import { UserUpdateRequest } from "../dto/user/UserUpdateRequest.dto";
 import { DeleteUserResponse } from "../dto/user/UserDeleteResponse.dto";
 import { UpdateUserParams } from "../dto/user/UpdateUserParams.dto";
 import { UserListResponse } from "../dto/user/UserListResponse.dto";
 import { RoleUpdateRequest } from "../dto/user/RoleRequest.dto";
+import { UnauthorizedErrorResponse } from "../dto/Error/UnauthorizedErrorResponse.dto";
 
 // @Response<ValidationErrorResponse>(422, "Validation failed")
 // @Response<BadRequestErrorResponse>(400, "BadRequestError")
@@ -47,10 +54,11 @@ export class _UserController extends BaseController {
     "Unprocessable Entity – validation errors",
     {
       message: "Validation failed",
-      errors: [{ field: "emailName", message: "Please Enter Email" }],
+      errors: [{ field: "email", message: "Please Enter Email" }],
     }
   )
   @Response<InternalErrorResponse>(500, "Internal server error")
+  @Middlewares(validate_schemas(UserSignupValidationSchema))
   @Post("signup")
   // async getProfile(@Request() request: ExRequest) {
   async create(@Body() signUpData: SignupRequest): Promise<UserResponse> {
@@ -59,17 +67,18 @@ export class _UserController extends BaseController {
       // fullName,
       firstName,
       lastName,
-      emailName: email, // Renaming emailName to email
-      emailPassword: password, // Renaming emailPassword to password
-      emailConfirmPassword: confirmPassword, // Renaming emailConfirmPassword to confirmPassword
+      email, // Renaming emailName to email
+      password, // Renaming emailPassword to password
+      confirmPassword, // Renaming emailConfirmPassword to confirmPassword
       gender,
-      emailDob: dob, // Renaming emailDob to dob
-      address,
-      phone,
-      title,
-      avatarUrl,
+      dob, // Renaming emailDob to dob
+      address = null,
+      phone = null,
+      title = null,
+      avatarUrl = null,
     } = signUpData;
 
+    console.log("Creating user!", signUpData);
     const user = await UserService.create({
       firstName,
       lastName,
@@ -78,10 +87,10 @@ export class _UserController extends BaseController {
       confirmPassword,
       gender,
       dob: new Date(dob), // Ensure dob is converted to Date format
-      address,
-      phone,
-      title,
-      avatarUrl,
+      address: address ?? null, // Ensure null conversion
+      phone: phone ?? null,
+      title: title ?? null,
+      avatarUrl: avatarUrl ?? null,
     });
 
     // if (!userProfile) {
@@ -118,6 +127,7 @@ export class _UserController extends BaseController {
   }
 
   // GET SINGLE USER
+  @Security("jwt")
   @SuccessResponse("200", "User fetched successfully")
   @Response<ErrorResponse>(404, "User not found")
   @Get("{id}")
@@ -132,6 +142,7 @@ export class _UserController extends BaseController {
   }
 
   // UPDATE USER
+  @Security("jwt")
   @Put("{id}")
   @Middlewares([
     validate_schemas(userUpdateSchema),
@@ -160,24 +171,33 @@ export class _UserController extends BaseController {
     });
   }
 
-  @Patch("{id}/role")
+  @Security("jwt")
+  @SuccessResponse("200", "Roles updated")
+  @Response<UnauthorizedErrorResponse>(401, "Unauthorized – wrong credentials")
+  @Response<InternalErrorResponse>(500, "Internal server error")
+  // @Patch("{userUid}/role")
+  @Patch("{userUid}")
   @Middlewares([
     authorize("override_permissions"), // Combines self-access + privilege
   ])
-  async changeRole(@Path() id: number, @Body() body: RoleUpdateRequest) {
-    // const updatedUser = await UserService.updateUserRoles(id, body.roleIds);
-    // const serialized = {
-    //   ...updatedUser,
-    //   dob: updatedUser.dob.toISOString(),
-    //   createdAt: updatedUser.createdAt.toISOString(),
-    // };
-    // return super.putOk({
-    //   message: "Role updated successfully",
-    //   data: updatedUser,
-    // });
+  async updateRole(
+    @Request() req: ExRequest,
+    @Path()
+    userUid: string,
+    @Body() body: RoleUpdateRequest
+  ) {
+    // Add explicit type conversion
+    const roleUids = body.roleUids as string[];
+    const updated = await UserService.updateUserRoles(userUid, roleUids);
+
+    return super.patchOk({
+      message: "Roles updated successfully",
+      data: UserDTO.single(updated),
+    });
   }
 
   // DELETE USER
+  @Security("jwt")
   @SuccessResponse("200", "User deletion successful")
   @Response<ErrorResponse>(404, "User not found")
   @Delete("{id}")
