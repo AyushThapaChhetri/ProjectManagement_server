@@ -112,15 +112,15 @@ const models: TsoaRoute.Models = {
         "properties": {
             "firstName": {"dataType":"string","required":true},
             "lastName": {"dataType":"string","required":true},
-            "emailName": {"dataType":"string","required":true},
-            "emailPassword": {"dataType":"string","required":true},
-            "emailConfirmPassword": {"dataType":"string","required":true},
+            "email": {"dataType":"string","required":true},
+            "password": {"dataType":"string","required":true},
+            "confirmPassword": {"dataType":"string","required":true},
             "gender": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["male"]},{"dataType":"enum","enums":["female"]},{"dataType":"enum","enums":["other"]}],"required":true},
-            "emailDob": {"dataType":"string","required":true},
-            "address": {"dataType":"string"},
-            "phone": {"dataType":"string"},
-            "title": {"dataType":"string"},
-            "avatarUrl": {"dataType":"string"},
+            "dob": {"dataType":"string","required":true},
+            "address": {"dataType":"union","subSchemas":[{"dataType":"string"},{"dataType":"enum","enums":[null]}]},
+            "phone": {"dataType":"union","subSchemas":[{"dataType":"string"},{"dataType":"enum","enums":[null]}]},
+            "title": {"dataType":"union","subSchemas":[{"dataType":"string"},{"dataType":"enum","enums":[null]}]},
+            "avatarUrl": {"dataType":"union","subSchemas":[{"dataType":"string"},{"dataType":"enum","enums":[null]}]},
         },
         "additionalProperties": false,
     },
@@ -151,10 +151,20 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ApiResponse_UserResponseData_": {
+        "dataType": "refObject",
+        "properties": {
+            "statusCode": {"dataType":"double","required":true},
+            "message": {"dataType":"string","required":true},
+            "data": {"ref":"UserResponseData","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "RoleUpdateRequest": {
         "dataType": "refObject",
         "properties": {
-            "roleIds": {"dataType":"array","array":{"dataType":"double"},"required":true},
+            "roleUids": {"dataType":"array","array":{"dataType":"string"},"required":true},
         },
         "additionalProperties": false,
     },
@@ -269,7 +279,7 @@ const models: TsoaRoute.Models = {
         "dataType": "refObject",
         "properties": {
             "message": {"dataType":"string","required":true},
-            "data": {"dataType":"nestedObjectLiteral","nestedProperties":{"updatedAt":{"dataType":"string","required":true},"createdAt":{"dataType":"string","required":true},"managerId":{"dataType":"double","required":true},"deadline":{"dataType":"union","subSchemas":[{"dataType":"string"},{"dataType":"enum","enums":[null]}],"required":true},"description":{"dataType":"union","subSchemas":[{"dataType":"string"},{"dataType":"enum","enums":[null]}],"required":true},"name":{"dataType":"string","required":true},"id":{"dataType":"double","required":true}},"required":true},
+            "data": {"dataType":"nestedObjectLiteral","nestedProperties":{"updatedAt":{"dataType":"string","required":true},"createdAt":{"dataType":"string","required":true},"managerId":{"dataType":"union","subSchemas":[{"dataType":"double"},{"dataType":"enum","enums":[null]}],"required":true},"deadline":{"dataType":"union","subSchemas":[{"dataType":"string"},{"dataType":"enum","enums":[null]}],"required":true},"description":{"dataType":"union","subSchemas":[{"dataType":"string"},{"dataType":"enum","enums":[null]}],"required":true},"name":{"dataType":"string","required":true},"id":{"dataType":"double","required":true}},"required":true},
             "statusCode": {"dataType":"double","required":true},
         },
         "additionalProperties": false,
@@ -326,8 +336,8 @@ const models: TsoaRoute.Models = {
     "LoginRequest": {
         "dataType": "refObject",
         "properties": {
-            "emailName": {"dataType":"string","required":true},
-            "emailPassword": {"dataType":"string","required":true},
+            "email": {"dataType":"string","required":true},
+            "password": {"dataType":"string","required":true},
         },
         "additionalProperties": false,
     },
@@ -453,6 +463,7 @@ export function RegisterRoutes(app: Router) {
                 id: {"in":"path","name":"id","required":true,"dataType":"double"},
         };
         app.get('/api/user/:id',
+            authenticateMiddleware([{"jwt":[]}]),
             ...(fetchMiddlewares<RequestHandler>(_UserController)),
             ...(fetchMiddlewares<RequestHandler>(_UserController.prototype.getUserById)),
 
@@ -484,6 +495,7 @@ export function RegisterRoutes(app: Router) {
                 updateData: {"in":"body","name":"updateData","required":true,"ref":"UserUpdateRequest"},
         };
         app.put('/api/user/:id',
+            authenticateMiddleware([{"jwt":[]}]),
             ...(fetchMiddlewares<RequestHandler>(_UserController)),
             ...(fetchMiddlewares<RequestHandler>(_UserController.prototype.updateUser)),
 
@@ -510,31 +522,33 @@ export function RegisterRoutes(app: Router) {
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        const args_UserController_changeRole: Record<string, TsoaRoute.ParameterSchema> = {
-                id: {"in":"path","name":"id","required":true,"dataType":"double"},
+        const args_UserController_updateRole: Record<string, TsoaRoute.ParameterSchema> = {
+                req: {"in":"request","name":"req","required":true,"dataType":"object"},
+                userUid: {"in":"path","name":"userUid","required":true,"dataType":"string"},
                 body: {"in":"body","name":"body","required":true,"ref":"RoleUpdateRequest"},
         };
-        app.patch('/api/user/:id/role',
+        app.patch('/api/user/:userUid',
+            authenticateMiddleware([{"jwt":[]}]),
             ...(fetchMiddlewares<RequestHandler>(_UserController)),
-            ...(fetchMiddlewares<RequestHandler>(_UserController.prototype.changeRole)),
+            ...(fetchMiddlewares<RequestHandler>(_UserController.prototype.updateRole)),
 
-            async function _UserController_changeRole(request: ExRequest, response: ExResponse, next: any) {
+            async function _UserController_updateRole(request: ExRequest, response: ExResponse, next: any) {
 
             // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
             let validatedArgs: any[] = [];
             try {
-                validatedArgs = templateService.getValidatedArgs({ args: args_UserController_changeRole, request, response });
+                validatedArgs = templateService.getValidatedArgs({ args: args_UserController_updateRole, request, response });
 
                 const controller = new _UserController();
 
               await templateService.apiHandler({
-                methodName: 'changeRole',
+                methodName: 'updateRole',
                 controller,
                 response,
                 next,
                 validatedArgs,
-                successStatus: undefined,
+                successStatus: 200,
               });
             } catch (err) {
                 return next(err);
@@ -545,6 +559,7 @@ export function RegisterRoutes(app: Router) {
                 id: {"in":"path","name":"id","required":true,"dataType":"double"},
         };
         app.delete('/api/user/:id',
+            authenticateMiddleware([{"jwt":[]}]),
             ...(fetchMiddlewares<RequestHandler>(_UserController)),
             ...(fetchMiddlewares<RequestHandler>(_UserController.prototype.deleteUser)),
 

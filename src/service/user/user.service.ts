@@ -22,10 +22,10 @@ class UserService {
     confirmPassword: string;
     gender: string;
     dob: Date;
-    address?: string;
-    phone?: string;
-    title?: string;
-    avatarUrl?: string;
+    address?: string | null;
+    phone?: string | null;
+    title?: string | null;
+    avatarUrl?: string | null;
   }) {
     const {
       firstName,
@@ -82,7 +82,34 @@ class UserService {
   }
 
   async getUserWithRoles(id: number) {
-    return await UserRepository.getUserWithRoles(id);
+    const user = await UserRepository.getUserWithRoles(id);
+    if (!user) throw new NotFoundError("User not found");
+
+    return user;
+  }
+
+  async findByUid(uid: string) {
+    return await UserRepository.findByUid(uid);
+  }
+
+  async updateUserRoles(userUid: string, roleUids: string[]) {
+    // 1) Ensure user exists
+    const user = await this.findByUid(userUid);
+    if (!user) throw new NotFoundError("User not found");
+
+    // 2) Optionally: validate that each roleUid exists
+    await UserRepository.validateRoleUids(roleUids);
+
+    // 3) Replace roles
+    const updated = await UserRepository.replaceUserRolesByUid(
+      user.id,
+      roleUids
+    );
+
+    console.log("updated datas: ", updated);
+
+    if (!updated) throw new NotFoundError("No data found");
+    return updated;
   }
 
   async delete(id: number) {

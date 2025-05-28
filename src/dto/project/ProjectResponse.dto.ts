@@ -18,7 +18,7 @@ export class ProjectResponse {
     name: string;
     description: string | null;
     deadline: string | null;
-    managerId: number;
+    managerId: number | null;
     createdAt: string;
     updatedAt: string;
   };

@@ -13,11 +13,11 @@ export const UserSignupValidationSchema = BaseYup.object({
     .max(30, "Last name is too long")
     .required("Please enter your last name"),
 
-  emailName: BaseYup.string()
+  email: BaseYup.string()
     .email("Please enter a valid email")
     .required("Please enter your email"),
 
-  emailPassword: BaseYup.string()
+  password: BaseYup.string()
     .min(6, "Password must be at least 6 characters")
     .matches(/[a-z]/, "Password must contain at least one lowercase letter")
     .matches(/[A-Z]/, "Password must contain at least one uppercase letter")
@@ -25,28 +25,127 @@ export const UserSignupValidationSchema = BaseYup.object({
     .matches(/[\W_]/, "Password must contain at least one special character")
     .required("Please enter your password"),
 
-  emailConfirmPassword: BaseYup.string()
-    .oneOf([BaseYup.ref("emailPassword")], "Passwords must match")
+  confirmPassword: BaseYup.string()
+    .oneOf([BaseYup.ref("password")], "Passwords must match")
     .required("Please confirm your password"),
 
   gender: BaseYup.string()
     .oneOf(["male", "female", "other"], "Invalid gender selection")
     .required("Please select your gender"),
 
-  emailDob: BaseYup.date()
+  dob: BaseYup.string()
     .required("Please select your date of birth")
-    .max(new Date(), "Date of birth cannot be in the future"),
+    .transform((value, originalValue) => {
+      const parsedDate = new Date(originalValue);
 
-  address: BaseYup.string().max(100, "Address is too long").optional(),
+      if (isNaN(parsedDate.getTime())) {
+        throw new yup.ValidationError(
+          "Invalid date format",
+          originalValue,
+          "dob"
+        );
+      }
 
-  phone: BaseYup.string()
-    .matches(/^[0-9]{10}$/, "Phone must be a 10-digit number")
+      if (parsedDate > new Date()) {
+        throw new yup.ValidationError(
+          "Date of birth cannot be in the future",
+          originalValue,
+          "dob"
+        );
+      }
+
+      return parsedDate.toISOString(); // Ensures ISO string
+    }),
+
+  address: BaseYup.string()
+    .transform((value, originalValue) => {
+      if (
+        originalValue === undefined ||
+        originalValue === "" ||
+        originalValue === null
+      ) {
+        return null;
+      }
+      return value;
+    })
+    .max(100, "Address is too long")
+    .nullable()
     .optional(),
 
-  title: BaseYup.string().max(50, "Title is too long").optional(),
+  phone: BaseYup.string()
+    .transform((value, originalValue) => {
+      if (
+        originalValue === undefined ||
+        originalValue === "" ||
+        originalValue === null
+      ) {
+        return null;
+      }
+      return value;
+    })
+    .matches(/^[0-9]{10}$/, "Phone must be a 10-digit number")
+    .nullable()
+    .optional(),
 
-  avatarUrl: BaseYup.string().url("Avatar must be a valid URL").optional(),
+  title: BaseYup.string()
+    .transform((value, originalValue) => {
+      if (
+        originalValue === undefined ||
+        originalValue === "" ||
+        originalValue === null
+      ) {
+        return null;
+      }
+      return value;
+    })
+    .max(50, "Title is too long")
+    .nullable()
+    .optional(),
+
+  avatarUrl: BaseYup.string()
+    .transform((value, originalValue) => {
+      if (
+        originalValue === undefined ||
+        originalValue === "" ||
+        originalValue === null
+      ) {
+        return null;
+      }
+      return value;
+    })
+    .url("Avatar must be a valid URL")
+    .nullable()
+    .optional(),
 });
+
+// address: BaseYup.string()
+//   .trim()
+//   .transform((value) => (value === "" || value === undefined ? null : value))
+//   .max(100, "Address is too long")
+//   .nullable()
+//   .optional(),
+
+// phone: BaseYup.string()
+//   .trim()
+//   .transform((value) => (value === "" || value === undefined ? null : value))
+//   .matches(/^\d{10}$/, "Phone number must be exactly 10 digits")
+//   .nullable()
+//   .optional(),
+
+// title: BaseYup.string()
+//   .trim()
+//   .transform((value) => (value === "" || value === undefined ? null : value))
+//   .max(50, "Title is too long")
+//   .nullable()
+//   .optional(),
+
+// avatarUrl: BaseYup.string()
+//   .trim()
+//   .transform((value) => (value === "" || value === undefined ? null : value))
+//   .url("Avatar must be a valid URL")
+//   .nullable()
+//   .optional(),
+// });
 
 export const userUpdateSchema = BaseYup.object({
   firstName: BaseYup.string()

@@ -16,6 +16,9 @@ export default class BaseController extends Controller {
   putOk<T>(params: { message: string; data: T }): ApiResponse<T> {
     return { ...params, statusCode: 200 };
   }
+  patchOk<T>(params: { message: string; data: T }): ApiResponse<T> {
+    return { ...params, statusCode: 200 };
+  }
   // postOk(params: { message: string; data: Object }) {
   //   return { ...params, statusCode: 200 };
   // }

@@ -10,29 +10,33 @@ export class SignupRequest {
   lastName!: string;
 
   @Example("hero@gmail.com")
-  emailName!: string;
+  email!: string;
 
   @Example("lafsU*sdf9dl")
-  emailPassword!: string;
+  password!: string;
 
   @Example("lafsU*sdf9dl")
-  emailConfirmPassword!: string;
+  confirmPassword!: string;
 
   @Example("male")
   gender!: "male" | "female" | "other";
 
   @Example("2025-03-05")
-  emailDob!: string;
+  dob!: string;
 
   @Example("123 Street, City")
-  address?: string;
+  // address?: string;
+  address?: string | null;
 
   @Example("9876543210")
-  phone?: string;
+  // phone?: string;
+  phone?: string | null;
 
   @Example("Software Engineer")
-  title?: string;
+  // title?: string;
+  title?: string | null;
 
   @Example("https://example.com/avatar.jpg")
-  avatarUrl?: string;
+  // avatarUrl?: string;
+  avatarUrl?: string | null;
 }

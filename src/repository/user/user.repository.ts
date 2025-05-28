@@ -2,6 +2,7 @@ import { UserUpdateRequest } from "../../dto/user/UserUpdateRequest.dto";
 import prisma from "../../config/db.config";
 import BaseRepository from "../contract/baseRepository";
 import { UpdateUserParams } from "../../dto/user/UpdateUserParams.dto";
+import { DBError } from "@app/service/contract/errors/dbErrorHandler";
 
 // class UserRepository {
 //   async findById(id: number) {
@@ -23,10 +24,11 @@ class UserRepository extends BaseRepository {
     password: string;
     gender: string;
     dob: Date;
-    address?: string;
-    phone?: string;
-    title?: string;
-    avatarUrl?: string;
+    // address?: string;
+    address?: string | null;
+    phone?: string | null;
+    title?: string | null;
+    avatarUrl?: string | null;
   }) {
     // Step 1: Create the user
     const user = await this.dbCatch(
@@ -53,6 +55,43 @@ class UserRepository extends BaseRepository {
 
     // Step 4: Return the created user
     return user;
+  }
+
+  async findByUid(uid: string) {
+    return await prisma.user.findUnique({
+      where: { uid: uid },
+    });
+  }
+
+  async validateRoleUids(roleUids: string[]) {
+    const count = await this.dbCatch(
+      prisma.role.count({
+        where: { uid: { in: roleUids } },
+      })
+    );
+    if (count !== roleUids.length) {
+      throw new Error("One or more roles do not exist");
+    }
+  }
+
+  async replaceUserRolesByUid(userId: number, roleUids: string[]) {
+    await prisma.userRole.deleteMany({
+      where: { userId },
+    });
+
+    const roles = await prisma.role.findMany({
+      where: { uid: { in: roleUids } },
+      select: { id: true },
+    });
+
+    const data = roles.map((role) => ({
+      userId,
+      roleId: role.id,
+    }));
+
+    await prisma.userRole.createMany({ data });
+
+    return this.getUserWithRoles(userId);
   }
 
   async assignRole(userId: number, roleId: number) {

@@ -213,15 +213,15 @@
 						"type": "string",
 						"example": "hero"
 					},
-					"emailName": {
+					"email": {
 						"type": "string",
 						"example": "hero@gmail.com"
 					},
-					"emailPassword": {
+					"password": {
 						"type": "string",
 						"example": "lafsU*sdf9dl"
 					},
-					"emailConfirmPassword": {
+					"confirmPassword": {
 						"type": "string",
 						"example": "lafsU*sdf9dl"
 					},
@@ -234,35 +234,39 @@
 						],
 						"example": "male"
 					},
-					"emailDob": {
+					"dob": {
 						"type": "string",
 						"example": "2025-03-05"
 					},
 					"address": {
 						"type": "string",
+						"nullable": true,
 						"example": "123 Street, City"
 					},
 					"phone": {
 						"type": "string",
+						"nullable": true,
 						"example": "9876543210"
 					},
 					"title": {
 						"type": "string",
+						"nullable": true,
 						"example": "Software Engineer"
 					},
 					"avatarUrl": {
 						"type": "string",
+						"nullable": true,
 						"example": "https://example.com/avatar.jpg"
 					}
 				},
 				"required": [
 					"firstName",
 					"lastName",
-					"emailName",
-					"emailPassword",
-					"emailConfirmPassword",
+					"email",
+					"password",
+					"confirmPassword",
 					"gender",
-					"emailDob"
+					"dob"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -327,22 +331,43 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"ApiResponse_UserResponseData_": {
+				"properties": {
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"$ref": "#/components/schemas/UserResponseData"
+					}
+				},
+				"required": [
+					"statusCode",
+					"message",
+					"data"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"RoleUpdateRequest": {
 				"properties": {
-					"roleIds": {
+					"roleUids": {
 						"items": {
-							"type": "number",
-							"format": "double"
+							"type": "string"
 						},
 						"type": "array",
 						"example": [
-							1,
-							2
+							"c289f43e-89de-42ef-8e1a-35a222b1ac12",
+							"e911ffb6-0f18-4e97-b06f-bf301cba763e"
 						]
 					}
 				},
 				"required": [
-					"roleIds"
+					"roleUids"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -640,7 +665,8 @@
 							},
 							"managerId": {
 								"type": "number",
-								"format": "double"
+								"format": "double",
+								"nullable": true
 							},
 							"deadline": {
 								"type": "string",
@@ -804,18 +830,18 @@
 			},
 			"LoginRequest": {
 				"properties": {
-					"emailName": {
+					"email": {
 						"type": "string",
 						"example": "hero@gmail.com"
 					},
-					"emailPassword": {
+					"password": {
 						"type": "string",
 						"example": "lafsU*sdf9dl"
 					}
 				},
 				"required": [
-					"emailName",
-					"emailPassword"
+					"email",
+					"password"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -953,7 +979,7 @@
 											"message": "Validation failed",
 											"errors": [
 												{
-													"field": "emailName",
+													"field": "email",
 													"message": "Please Enter Email"
 												}
 											]
@@ -1066,7 +1092,11 @@
 				"tags": [
 					"User"
 				],
-				"security": [],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
 				"parameters": [
 					{
 						"in": "path",
@@ -1096,7 +1126,11 @@
 				"tags": [
 					"User"
 				],
-				"security": [],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
 				"parameters": [
 					{
 						"in": "path",
@@ -1146,7 +1180,11 @@
 				"tags": [
 					"User"
 				],
-				"security": [],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
 				"parameters": [
 					{
 						"in": "path",
@@ -1160,26 +1198,56 @@
 				]
 			}
 		},
-		"/api/user/{id}/role": {
+		"/api/user/{userUid}": {
 			"patch": {
-				"operationId": "ChangeRole",
+				"operationId": "UpdateRole",
 				"responses": {
-					"204": {
-						"description": "No content"
+					"200": {
+						"description": "Roles updated",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_UserResponseData_"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized – wrong credentials",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/InternalErrorResponse"
+								}
+							}
+						}
 					}
 				},
 				"tags": [
 					"User"
 				],
-				"security": [],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
 				"parameters": [
 					{
 						"in": "path",
-						"name": "id",
+						"name": "userUid",
 						"required": true,
 						"schema": {
-							"format": "double",
-							"type": "number"
+							"type": "string"
 						}
 					}
 				],
@@ -2155,7 +2223,7 @@
 											"message": "Validation failed",
 											"errors": [
 												{
-													"field": "emailName",
+													"field": "email",
 													"message": "Please Enter Email"
 												}
 											]
