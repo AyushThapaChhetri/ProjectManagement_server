@@ -81,7 +81,7 @@ class TaskService {
   }
 
   async patch(
-    userId: number,
+    uid: string,
     taskId: number,
     patchData: Partial<{
       projectId: number;
@@ -96,10 +96,10 @@ class TaskService {
     }>
   ) {
     // 1. Validate inputs
-    if (!userId || !taskId) throw new BadRequestError("Invalid IDs");
+    if (!uid || !taskId) throw new BadRequestError("Invalid IDs");
 
     // 2. Fetch user
-    const user = await UserService.getUserWithRoles(userId);
+    const user = await UserService.getUserWithRoles(uid);
     if (!user) throw new NotFoundError("User not found");
 
     // 3. Authorization check
@@ -150,7 +150,7 @@ class TaskService {
 
     //  Ownership check
     // Fetch the user with roles from the repository
-    const user = await UserService.getUserWithRoles(currentUser.id);
+    const user = await UserService.getUserWithRoles(currentUser.uid);
 
     if (!user) {
       throw new NotFoundError("User not found");

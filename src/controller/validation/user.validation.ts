@@ -2,6 +2,23 @@ import * as yup from "yup";
 
 import BaseYup from "../contract/baseValidator.contract";
 
+const trimEmptyToUndefined = (originalValue: unknown) => {
+  const trimmed =
+    typeof originalValue === "string" ? originalValue.trim() : originalValue;
+
+  if (trimmed === undefined || trimmed === "" || trimmed === null) {
+    return undefined;
+  }
+
+  return trimmed;
+};
+
+const parseDateSafely = (value: unknown): Date | null => {
+  const trimmed = typeof value === "string" ? value.trim() : value;
+  const parsed = new Date(trimmed as string);
+  return isNaN(parsed.getTime()) ? null : parsed;
+};
+
 export const UserSignupValidationSchema = BaseYup.object({
   firstName: BaseYup.string()
     .min(2, "First name is too short")
@@ -35,68 +52,62 @@ export const UserSignupValidationSchema = BaseYup.object({
 
   dob: BaseYup.string()
     .required("Please select your date of birth")
-    .transform((value, originalValue) => {
-      const parsedDate = new Date(originalValue);
-
-      if (isNaN(parsedDate.getTime())) {
-        throw new yup.ValidationError(
-          "Invalid date format",
-          originalValue,
-          "dob"
-        );
+    // ↓ now run two tests after the required check:
+    .test("is-valid-date", "Invalid date format", (value) => {
+      // If value is "", the .required above already caught that,
+      // so here we only validate non-empty strings.
+      if (!value) return true; // let "required" handle empty
+      const parsed = new Date(value);
+      if (isNaN(parsed.getTime())) {
+        return false; // this will trigger "Invalid date format"
       }
-
-      if (parsedDate > new Date()) {
-        throw new yup.ValidationError(
-          "Date of birth cannot be in the future",
-          originalValue,
-          "dob"
-        );
+      return true;
+    })
+    .test(
+      "not-future-date",
+      "Date of birth cannot be in the future",
+      (value) => {
+        if (!value) return true;
+        const parsed = new Date(value);
+        // only run this check if parsed is a valid date
+        if (isNaN(parsed.getTime())) return true; // skip this test
+        return parsed <= new Date();
       }
-
-      return parsedDate.toISOString(); // Ensures ISO string
-    }),
+    ),
 
   address: BaseYup.string()
     .transform((value, originalValue) => {
-      if (
-        originalValue === undefined ||
-        originalValue === "" ||
-        originalValue === null
-      ) {
+      const trimmed = originalValue?.trim?.(); // safely trim if it's a string
+
+      if (trimmed === undefined || trimmed === "" || trimmed === null) {
         return null;
       }
-      return value;
+
+      return trimmed;
     })
     .max(100, "Address is too long")
     .nullable()
     .optional(),
 
   phone: BaseYup.string()
-    .transform((value, originalValue) => {
-      if (
-        originalValue === undefined ||
-        originalValue === "" ||
-        originalValue === null
-      ) {
-        return null;
-      }
-      return value;
-    })
+    .transform((_, original) =>
+      typeof original === "string" && original.trim() === ""
+        ? undefined
+        : original?.trim()
+    )
     .matches(/^[0-9]{10}$/, "Phone must be a 10-digit number")
     .nullable()
     .optional(),
 
   title: BaseYup.string()
     .transform((value, originalValue) => {
-      if (
-        originalValue === undefined ||
-        originalValue === "" ||
-        originalValue === null
-      ) {
+      const trimmed = originalValue?.trim?.(); // safely trim if it's a string
+
+      if (trimmed === undefined || trimmed === "" || trimmed === null) {
         return null;
       }
-      return value;
+
+      return trimmed;
     })
     .max(50, "Title is too long")
     .nullable()
@@ -104,80 +115,74 @@ export const UserSignupValidationSchema = BaseYup.object({
 
   avatarUrl: BaseYup.string()
     .transform((value, originalValue) => {
-      if (
-        originalValue === undefined ||
-        originalValue === "" ||
-        originalValue === null
-      ) {
+      const trimmed = originalValue?.trim?.(); // safely trim if it's a string
+
+      if (trimmed === undefined || trimmed === "" || trimmed === null) {
         return null;
       }
-      return value;
+
+      return trimmed;
     })
     .url("Avatar must be a valid URL")
     .nullable()
     .optional(),
 });
 
-// address: BaseYup.string()
-//   .trim()
-//   .transform((value) => (value === "" || value === undefined ? null : value))
-//   .max(100, "Address is too long")
-//   .nullable()
-//   .optional(),
-
-// phone: BaseYup.string()
-//   .trim()
-//   .transform((value) => (value === "" || value === undefined ? null : value))
-//   .matches(/^\d{10}$/, "Phone number must be exactly 10 digits")
-//   .nullable()
-//   .optional(),
-
-// title: BaseYup.string()
-//   .trim()
-//   .transform((value) => (value === "" || value === undefined ? null : value))
-//   .max(50, "Title is too long")
-//   .nullable()
-//   .optional(),
-
-// avatarUrl: BaseYup.string()
-//   .trim()
-//   .transform((value) => (value === "" || value === undefined ? null : value))
-//   .url("Avatar must be a valid URL")
-//   .nullable()
-//   .optional(),
-// });
-
-export const userUpdateSchema = BaseYup.object({
+export const UserUpdateValidationSchema = BaseYup.object({
   firstName: BaseYup.string()
-    .max(50, "First name must be at most 50 characters")
+    .trim()
+    .min(2, "First name is too short")
+    .max(30, "First name is too long")
     .optional(),
 
   lastName: BaseYup.string()
-    .max(50, "Last name must be at most 50 characters")
+    .trim()
+    .min(2, "Last name is too short")
+    .max(30, "Last name is too long")
     .optional(),
 
+  email: BaseYup.string().trim().email("Invalid email").optional(),
+
   gender: BaseYup.string()
+    .trim()
     .oneOf(["male", "female", "other"], "Invalid gender")
     .optional(),
 
-  dob: BaseYup.date()
-    .max(new Date(), "Date of birth cannot be in the future")
+  password: BaseYup.string().strip(),
+  confirmPassword: BaseYup.string().strip(),
+
+  dob: BaseYup.string()
+    .test("is-valid-date", "Invalid date format", (value) => {
+      return parseDateSafely(value) !== null;
+    })
+    .test(
+      "not-future-date",
+      "Date of birth cannot be in the future",
+      (value) => {
+        const date = parseDateSafely(value);
+        if (!date) return true;
+        return date <= new Date();
+      }
+    )
     .optional(),
 
   address: BaseYup.string()
-    .nullable()
+    .transform((_, originalValue) => trimEmptyToUndefined(originalValue))
     .max(100, "Address is too long")
     .optional(),
 
   phone: BaseYup.string()
-    .nullable()
+    .transform((_, originalValue) => trimEmptyToUndefined(originalValue))
     .matches(/^[0-9]{10}$/, "Phone must be a 10-digit number")
     .optional(),
 
-  title: BaseYup.string().nullable().max(50, "Title is too long").optional(),
+  title: BaseYup.string()
+    .transform((_, originalValue) => trimEmptyToUndefined(originalValue))
+    .max(50, "Title is too long")
+    .optional(),
 
   avatarUrl: BaseYup.string()
-    .nullable()
+    .transform((_, originalValue) => trimEmptyToUndefined(originalValue))
     .url("Avatar must be a valid URL")
     .optional(),
 });

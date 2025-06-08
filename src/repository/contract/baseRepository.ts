@@ -1,4 +1,4 @@
-import { DBError } from "@app/service/contract/errors/dbErrorHandler";
+import { DBError } from "../../service/contract/errors/dbErrorHandler";
 
 export default class BaseRepository {
   dbCatch<T>(param: Promise<T>): Promise<T> {

@@ -17,19 +17,44 @@ export const validate_schemas = (
       req[source] = validatedData; // <-- THIS IS THE CRITICAL CHANGE
       next(); // Move to the next step if validation passes
     } catch (error) {
-      const formattedErrors = Array.from(
-        new Map(
-          (error as Yup.ValidationError).inner.map((err) => [
-            err.path,
-            { field: err.path, message: err.message },
-          ])
-        ).values()
-      );
+      const yupError = error as Yup.ValidationError;
+
+      const formattedErrors =
+        yupError.inner && yupError.inner.length > 0
+          ? Array.from(
+              new Map(
+                yupError.inner.map((err) => [
+                  err.path,
+                  { field: err.path, message: err.message },
+                ])
+              ).values()
+            )
+          : [
+              {
+                field: yupError.path || "unknown",
+                message: yupError.message,
+              },
+            ];
 
       res.status(422).json({
         message: "Validation failed",
         errors: formattedErrors,
       });
     }
+    // catch (error) {
+    //   const formattedErrors = Array.from(
+    //     new Map(
+    //       (error as Yup.ValidationError).inner.map((err) => [
+    //         err.path,
+    //         { field: err.path, message: err.message },
+    //       ])
+    //     ).values()
+    //   );
+
+    //   res.status(422).json({
+    //     message: "Validation failed",
+    //     errors: formattedErrors,
+    //   });
+    // }
   };
 };

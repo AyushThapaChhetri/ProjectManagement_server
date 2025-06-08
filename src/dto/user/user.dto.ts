@@ -5,6 +5,7 @@ import { UserWithRoles } from "../../@types/UserWithRoles";
 class _UserDTO {
   single(user: UserWithRoles): UserResponseData {
     return {
+      uid: user.uid,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,

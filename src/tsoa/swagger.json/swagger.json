@@ -87,6 +87,10 @@
 			},
 			"UserResponseData": {
 				"properties": {
+					"uid": {
+						"type": "string",
+						"example": "eb23e109-3f84-4a6f-97b2-cedf2dd16f5e"
+					},
 					"firstName": {
 						"type": "string",
 						"example": "John"
@@ -143,6 +147,7 @@
 					}
 				},
 				"required": [
+					"uid",
 					"firstName",
 					"lastName",
 					"email",
@@ -1064,7 +1069,7 @@
 				]
 			}
 		},
-		"/api/user/{id}": {
+		"/api/user/{uid}": {
 			"get": {
 				"operationId": "GetUserById",
 				"responses": {
@@ -1100,11 +1105,10 @@
 				"parameters": [
 					{
 						"in": "path",
-						"name": "id",
+						"name": "uid",
 						"required": true,
 						"schema": {
-							"format": "double",
-							"type": "number"
+							"type": "string"
 						}
 					}
 				]
@@ -1134,11 +1138,10 @@
 				"parameters": [
 					{
 						"in": "path",
-						"name": "id",
+						"name": "uid",
 						"required": true,
 						"schema": {
-							"format": "double",
-							"type": "number"
+							"type": "string"
 						}
 					}
 				],
@@ -1188,11 +1191,10 @@
 				"parameters": [
 					{
 						"in": "path",
-						"name": "id",
+						"name": "uid",
 						"required": true,
 						"schema": {
-							"format": "double",
-							"type": "number"
+							"type": "string"
 						}
 					}
 				]
