@@ -63,7 +63,7 @@ class ProjectService {
 
     //  Ownership check
     // Fetch the user with roles from the repository
-    const user = await userService.getUserWithRoles(currentUser.id);
+    const user = await userService.getUserWithRoles(currentUser.uid);
 
     if (!user) {
       throw new NotFoundError("User not found");

@@ -119,7 +119,7 @@ async function main() {
       lastName: "Admin",
       email: "superadmin@company.com",
       password: await bcrypt.hash("SecurePassword123!", SALT_ROUNDS),
-      gender: "Male",
+      gender: "male",
       dob: new Date(1985, 0, 1),
       userRoles: {
         create: {
@@ -188,7 +188,7 @@ async function createUserWithRole(
       lastName,
       email,
       password: await bcrypt.hash("TempPassword123!", SALT_ROUNDS),
-      gender: "Male",
+      gender: "male",
       dob: new Date(1990, 0, 1),
       userRoles: {
         create: {

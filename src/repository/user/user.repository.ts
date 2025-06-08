@@ -2,7 +2,8 @@ import { UserUpdateRequest } from "../../dto/user/UserUpdateRequest.dto";
 import prisma from "../../config/db.config";
 import BaseRepository from "../contract/baseRepository";
 import { UpdateUserParams } from "../../dto/user/UpdateUserParams.dto";
-import { DBError } from "@app/service/contract/errors/dbErrorHandler";
+// import { DBError } from "@app/service/contract/errors/dbErrorHandler";
+import { NotFoundError } from "../../service/contract/errors/errors";
 
 // class UserRepository {
 //   async findById(id: number) {
@@ -57,7 +58,14 @@ class UserRepository extends BaseRepository {
     return user;
   }
 
+  //not in use
   async findByUid(uid: string) {
+    // const user = await prisma.user.findUnique({
+    //   where: { uid: uid },
+    // });
+    // if (!user) throw new NotFoundError("User not found");
+    // // console.log("Find by Id:", user);
+    // return user;
     return await prisma.user.findUnique({
       where: { uid: uid },
     });
@@ -74,7 +82,11 @@ class UserRepository extends BaseRepository {
     }
   }
 
-  async replaceUserRolesByUid(userId: number, roleUids: string[]) {
+  async replaceUserRolesByUid(
+    userId: number,
+    userUid: string,
+    roleUids: string[]
+  ) {
     await prisma.userRole.deleteMany({
       where: { userId },
     });
@@ -91,7 +103,7 @@ class UserRepository extends BaseRepository {
 
     await prisma.userRole.createMany({ data });
 
-    return this.getUserWithRoles(userId);
+    return this.getUserWithRoles(userUid);
   }
 
   async assignRole(userId: number, roleId: number) {
@@ -104,10 +116,9 @@ class UserRepository extends BaseRepository {
       })
     );
   }
-
-  async getUserWithRoles(userId: number) {
+  async getUserWithRoles(uid: string) {
     return await prisma.user.findUnique({
-      where: { id: userId },
+      where: { uid: uid },
       include: {
         userRoles: {
           include: {
@@ -142,17 +153,17 @@ class UserRepository extends BaseRepository {
     return { users, total };
   }
 
-  async update(id: number, data: UpdateUserParams) {
+  async update(uid: string, data: UpdateUserParams) {
     return await prisma.user.update({
-      where: { id },
+      where: { uid },
       data,
       include: { userRoles: { include: { role: true } } },
     });
   }
 
-  async delete(id: number) {
+  async delete(uid: string) {
     return await prisma.user.delete({
-      where: { id },
+      where: { uid },
     });
   }
 }

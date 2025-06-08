@@ -3,6 +3,9 @@
 import { Example } from "tsoa";
 
 export class UserResponseData {
+  @Example("eb23e109-3f84-4a6f-97b2-cedf2dd16f5e")
+  uid!: string;
+
   @Example("John")
   firstName!: string;
 

@@ -2,6 +2,7 @@ import BaseController from "./contract/baseController.contract";
 import { Request as ExRequest } from "express";
 import {
   BadRequestError,
+  ForbiddenError,
   NotFoundError,
 } from "@app/service/contract/errors/errors";
 import { UserDTO } from "../dto/user/user.dto";
@@ -33,7 +34,7 @@ import { authorize } from "../middlewares/authorization";
 import { validate_schemas } from "@app/middlewares/validationMiddleware";
 import {
   UserSignupValidationSchema,
-  userUpdateSchema,
+  UserUpdateValidationSchema,
 } from "./validation/user.validation";
 import { UserUpdateRequest } from "../dto/user/UserUpdateRequest.dto";
 import { DeleteUserResponse } from "../dto/user/UserDeleteResponse.dto";
@@ -130,10 +131,10 @@ export class _UserController extends BaseController {
   @Security("jwt")
   @SuccessResponse("200", "User fetched successfully")
   @Response<ErrorResponse>(404, "User not found")
-  @Get("{id}")
+  @Get("{uid}")
   @Middlewares([authorize()]) // Allows self-access
-  async getUserById(@Path() id: number): Promise<UserResponse> {
-    const user = await UserService.getByIdWithRoles(id);
+  async getUserById(@Path() uid: string): Promise<UserResponse> {
+    const user = await UserService.getByIdWithRoles(uid);
 
     return super.getOk({
       message: "User fetch successfully",
@@ -143,21 +144,31 @@ export class _UserController extends BaseController {
 
   // UPDATE USER
   @Security("jwt")
-  @Put("{id}")
+  @Put("{uid}")
   @Middlewares([
-    validate_schemas(userUpdateSchema),
+    validate_schemas(UserUpdateValidationSchema),
     authorize("update_user"), // Combines self-access + privilege
   ])
   async updateUser(
-    @Path() id: number,
+    @Request() req: ExRequest,
+    @Path() uid: string,
     @Body() updateData: UserUpdateRequest
   ): Promise<UserResponse> {
-    const params: UpdateUserParams = {
-      ...updateData,
-      dob: updateData.dob ? new Date(updateData.dob) : undefined,
-    };
+    const currentUserUid = req.user.uid; // or req.user.id depending on your JWT payload
 
-    const updatedUser = await UserService.update(id, params);
+    const sanitized = {
+      ...updateData,
+      title: updateData.title ?? null,
+      phone: updateData.phone ?? null,
+      address: updateData.address ?? null,
+      avatarUrl: updateData.avatarUrl ?? null,
+    };
+    const params: UpdateUserParams = {
+      ...sanitized,
+      dob: sanitized.dob ? new Date(sanitized.dob) : undefined,
+    };
+    console.log("From Controller:", params);
+    const updatedUser = await UserService.update(uid, params, currentUserUid);
 
     // const serialized = {
     //   ...updatedUser,
@@ -200,12 +211,16 @@ export class _UserController extends BaseController {
   @Security("jwt")
   @SuccessResponse("200", "User deletion successful")
   @Response<ErrorResponse>(404, "User not found")
-  @Delete("{id}")
+  @Delete("{uid}")
   @Middlewares([
     authorize("delete_user"), // Combines self-access + privilege
   ])
-  async deleteUser(@Path() id: number): Promise<DeleteUserResponse> {
-    await UserService.delete(id);
+  async deleteUser(
+    @Request() req: ExRequest,
+    @Path() uid: string
+  ): Promise<DeleteUserResponse> {
+    const currentUserUid = req.user.uid;
+    await UserService.delete(uid, currentUserUid);
     return super.deleteOk({
       message: "User deletion successfull",
       data: {},

@@ -66,6 +66,7 @@ const models: TsoaRoute.Models = {
     "UserResponseData": {
         "dataType": "refObject",
         "properties": {
+            "uid": {"dataType":"string","required":true},
             "firstName": {"dataType":"string","required":true},
             "lastName": {"dataType":"string","required":true},
             "email": {"dataType":"string","required":true},
@@ -460,9 +461,9 @@ export function RegisterRoutes(app: Router) {
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const args_UserController_getUserById: Record<string, TsoaRoute.ParameterSchema> = {
-                id: {"in":"path","name":"id","required":true,"dataType":"double"},
+                uid: {"in":"path","name":"uid","required":true,"dataType":"string"},
         };
-        app.get('/api/user/:id',
+        app.get('/api/user/:uid',
             authenticateMiddleware([{"jwt":[]}]),
             ...(fetchMiddlewares<RequestHandler>(_UserController)),
             ...(fetchMiddlewares<RequestHandler>(_UserController.prototype.getUserById)),
@@ -491,10 +492,11 @@ export function RegisterRoutes(app: Router) {
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const args_UserController_updateUser: Record<string, TsoaRoute.ParameterSchema> = {
-                id: {"in":"path","name":"id","required":true,"dataType":"double"},
+                req: {"in":"request","name":"req","required":true,"dataType":"object"},
+                uid: {"in":"path","name":"uid","required":true,"dataType":"string"},
                 updateData: {"in":"body","name":"updateData","required":true,"ref":"UserUpdateRequest"},
         };
-        app.put('/api/user/:id',
+        app.put('/api/user/:uid',
             authenticateMiddleware([{"jwt":[]}]),
             ...(fetchMiddlewares<RequestHandler>(_UserController)),
             ...(fetchMiddlewares<RequestHandler>(_UserController.prototype.updateUser)),
@@ -556,9 +558,10 @@ export function RegisterRoutes(app: Router) {
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const args_UserController_deleteUser: Record<string, TsoaRoute.ParameterSchema> = {
-                id: {"in":"path","name":"id","required":true,"dataType":"double"},
+                req: {"in":"request","name":"req","required":true,"dataType":"object"},
+                uid: {"in":"path","name":"uid","required":true,"dataType":"string"},
         };
-        app.delete('/api/user/:id',
+        app.delete('/api/user/:uid',
             authenticateMiddleware([{"jwt":[]}]),
             ...(fetchMiddlewares<RequestHandler>(_UserController)),
             ...(fetchMiddlewares<RequestHandler>(_UserController.prototype.deleteUser)),

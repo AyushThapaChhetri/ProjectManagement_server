@@ -163,7 +163,7 @@ export class TaskController extends BaseController {
     @Path() taskId: number,
     @Body() body: PatchTaskRequest
   ) {
-    const userId = req.user.id;
+    const user = req.user;
 
     const patchData = {
       ...body,
@@ -171,7 +171,7 @@ export class TaskController extends BaseController {
       endDate: body.endDate ? new Date(body.endDate) : undefined,
     };
 
-    const updatedTask = await TaskService.patch(userId, taskId, patchData);
+    const updatedTask = await TaskService.patch(user.uid, taskId, patchData);
 
     return super.putOk({
       message: "Task Updated Successfully",

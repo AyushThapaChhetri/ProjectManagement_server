@@ -2,6 +2,7 @@ import Hash from "@app/libs/Hash";
 import UserRepository from "../../repository/user/user.repository";
 import {
   BadRequestError,
+  ForbiddenError,
   NotFoundError,
   UserAlreadyExistError,
 } from "../contract/errors/errors";
@@ -14,6 +15,9 @@ class UserService {
   //   console.log("Profile from service: ", userProfile);
   //   return userProfile;
   // }
+
+  private readonly SUPER_ADMIN_ROLE = "Super Admin";
+
   async create(params: {
     firstName: string;
     lastName: string;
@@ -69,27 +73,60 @@ class UserService {
     return UserRepository.findAllPaginated(page, limit);
   }
 
-  async getByIdWithRoles(id: number) {
-    const user = await this.getUserWithRoles(id);
+  async getByIdWithRoles(uid: string) {
+    const user = await this.getUserWithRoles(uid);
     if (!user) throw new NotFoundError("User not found");
     return user;
   }
 
-  async update(id: number, data: UpdateUserParams) {
+  async update(
+    uidToUpdate: string,
+    data: UpdateUserParams,
+    currentUserUid: string
+  ) {
     const updateData = data.dob ? { ...data, dob: new Date(data.dob) } : data;
 
-    return await UserRepository.update(id, updateData);
+    // return await UserRepository.update(uid, updateData);
+
+    // fetch roles of the user you’re about to update
+    const userToUpdate = await this.getUserWithRoles(uidToUpdate);
+    if (!userToUpdate) throw new NotFoundError("User not found");
+
+    const currentUser = await this.getUserWithRoles(currentUserUid);
+    if (!currentUser) throw new ForbiddenError("Current user not authorized");
+
+    const isTargetSuperAdmin = userToUpdate.userRoles.some(
+      (ur) => ur.role.name === this.SUPER_ADMIN_ROLE
+    );
+
+    const isCurrentUserSuperAdmin = currentUser.userRoles.some(
+      (ur) => ur.role.name === this.SUPER_ADMIN_ROLE
+    );
+    // Allow update only if:
+    // - target is NOT super admin, or
+    // - target IS super admin AND current user is the SAME user
+    if (
+      isTargetSuperAdmin &&
+      (currentUserUid !== uidToUpdate || !isCurrentUserSuperAdmin)
+    ) {
+      throw new ForbiddenError("Cannot modify other superAdmin accounts");
+    }
+
+    return await UserRepository.update(uidToUpdate, updateData);
   }
 
-  async getUserWithRoles(id: number) {
-    const user = await UserRepository.getUserWithRoles(id);
+  async getUserWithRoles(uid: string) {
+    const user = await UserRepository.getUserWithRoles(uid);
     if (!user) throw new NotFoundError("User not found");
 
     return user;
   }
 
   async findByUid(uid: string) {
-    return await UserRepository.findByUid(uid);
+    const user = await UserRepository.findByUid(uid);
+    if (!user) throw new NotFoundError("User not found");
+    console.log("Find by Id:", user);
+    return user;
   }
 
   async updateUserRoles(userUid: string, roleUids: string[]) {
@@ -103,6 +140,7 @@ class UserService {
     // 3) Replace roles
     const updated = await UserRepository.replaceUserRolesByUid(
       user.id,
+      userUid,
       roleUids
     );
 
@@ -112,10 +150,32 @@ class UserService {
     return updated;
   }
 
-  async delete(id: number) {
-    const user = await this.getUserWithRoles(id);
-    if (!user) throw new NotFoundError("User not found");
-    return UserRepository.delete(id);
+  async delete(uidToUpdate: string, currentUserUid: string) {
+    // fetch roles of the user you’re about to update
+    const userToUpdate = await this.getUserWithRoles(uidToUpdate);
+    if (!userToUpdate) throw new NotFoundError("User not found");
+
+    const currentUser = await this.getUserWithRoles(currentUserUid);
+    if (!currentUser) throw new ForbiddenError("Current user not authorized");
+
+    const isTargetSuperAdmin = userToUpdate.userRoles.some(
+      (ur) => ur.role.name === this.SUPER_ADMIN_ROLE
+    );
+
+    const isCurrentUserSuperAdmin = currentUser.userRoles.some(
+      (ur) => ur.role.name === this.SUPER_ADMIN_ROLE
+    );
+    // Allow update only if:
+    // - target is NOT super admin, or
+    // - target IS super admin AND current user is the SAME user
+    if (
+      isTargetSuperAdmin &&
+      (currentUserUid !== uidToUpdate || !isCurrentUserSuperAdmin)
+    ) {
+      throw new ForbiddenError("Cannot modify other superAdmin accounts");
+    }
+
+    return UserRepository.delete(uidToUpdate);
   }
 }
 
