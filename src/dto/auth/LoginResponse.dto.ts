@@ -1,6 +1,6 @@
 // src/dto/user/LoginResponse.dto.ts
 import { Example } from "tsoa";
-import { UserResponseData } from "./UserResponse.dto";
+import { UserResponseData } from ".././user/UserResponse.dto";
 
 export class LoginResponseData {
   @Example({

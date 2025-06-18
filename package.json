@@ -7,14 +7,16 @@
     "tsoa:routes": "tsoa routes",
     "build": "npm run tsoa:spec && npm run tsoa:routes && tsc",
     "start": "npm run build && nodemon -r tsconfig-paths/register src/server.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:seed": "prisma db seed",
+    "ts": "ts-node -r tsconfig-paths/register"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@prisma/client": "^6.5.0",
+    "@prisma/client": "^6.10.0",
     "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.17",
     "@types/node": "^22.13.9",
@@ -30,6 +32,7 @@
     "swagger-ui-express": "^5.0.1",
     "ts-node": "^10.9.2",
     "tsoa": "^6.6.0",
+    "uuid": "^11.1.0",
     "yup": "^1.6.1"
   },
   "devDependencies": {
@@ -39,7 +42,11 @@
     "@types/passport": "^1.0.17",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
+    "@types/uuid": "^10.0.0",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.2"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   }
 }

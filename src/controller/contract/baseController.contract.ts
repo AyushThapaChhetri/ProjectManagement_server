@@ -13,6 +13,12 @@ export default class BaseController extends Controller {
     return { ...params, statusCode: 200 };
   }
 
+  putOk<T>(params: { message: string; data: T }): ApiResponse<T> {
+    return { ...params, statusCode: 200 };
+  }
+  patchOk<T>(params: { message: string; data: T }): ApiResponse<T> {
+    return { ...params, statusCode: 200 };
+  }
   // postOk(params: { message: string; data: Object }) {
   //   return { ...params, statusCode: 200 };
   // }
@@ -21,6 +27,10 @@ export default class BaseController extends Controller {
   // }
 
   getOk<T>(params: { message: string; data: T }): ApiResponse<T> {
+    return { ...params, statusCode: 200 };
+  }
+
+  deleteOk<T>(params: { message: string; data: T }): ApiResponse<T> {
     return { ...params, statusCode: 200 };
   }
 }

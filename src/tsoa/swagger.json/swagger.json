@@ -7,8 +7,90 @@
 		"requestBodies": {},
 		"responses": {},
 		"schemas": {
+			"FieldError": {
+				"properties": {
+					"field": {
+						"type": "string",
+						"example": "fieldName"
+					},
+					"message": {
+						"type": "string",
+						"example": "Validation error message"
+					}
+				},
+				"required": [
+					"field",
+					"message"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ValidationErrorResponse": {
+				"properties": {
+					"message": {
+						"type": "string",
+						"example": "Validation failed"
+					},
+					"errors": {
+						"items": {
+							"$ref": "#/components/schemas/FieldError"
+						},
+						"type": "array",
+						"description": "Detailed list of field errors"
+					}
+				},
+				"required": [
+					"message",
+					"errors"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UnauthorizedErrorResponse": {
+				"properties": {
+					"error": {
+						"type": "string",
+						"example": "Unauthorized error message"
+					}
+				},
+				"required": [
+					"error"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ForbiddenErrorResponse": {
+				"properties": {
+					"error": {
+						"type": "string",
+						"example": "Forbidden error message"
+					}
+				},
+				"required": [
+					"error"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"NotFoundErrorResponse": {
+				"properties": {
+					"error": {
+						"type": "string",
+						"example": "Not found Error"
+					}
+				},
+				"required": [
+					"error"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"UserResponseData": {
 				"properties": {
+					"uid": {
+						"type": "string",
+						"example": "eb23e109-3f84-4a6f-97b2-cedf2dd16f5e"
+					},
 					"firstName": {
 						"type": "string",
 						"example": "John"
@@ -52,20 +134,32 @@
 					"createdAt": {
 						"type": "string",
 						"example": "2025-04-25T12:34:56.789Z"
+					},
+					"roles": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"example": [
+							"Admin",
+							"Editor"
+						]
 					}
 				},
 				"required": [
+					"uid",
 					"firstName",
 					"lastName",
 					"email",
 					"gender",
 					"dob",
-					"createdAt"
+					"createdAt",
+					"roles"
 				],
 				"type": "object",
 				"additionalProperties": false
 			},
-			"SignupResponse": {
+			"UserResponse": {
 				"properties": {
 					"statusCode": {
 						"type": "number",
@@ -73,8 +167,7 @@
 						"example": 200
 					},
 					"message": {
-						"type": "string",
-						"example": "User created successfully"
+						"type": "string"
 					},
 					"data": {
 						"$ref": "#/components/schemas/UserResponseData"
@@ -84,6 +177,33 @@
 					"statusCode",
 					"message",
 					"data"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ErrorResponse": {
+				"properties": {
+					"message": {
+						"type": "string",
+						"description": "A human-readable message explaining the error",
+						"example": "Email already exists"
+					}
+				},
+				"required": [
+					"message"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"InternalErrorResponse": {
+				"properties": {
+					"message": {
+						"type": "string",
+						"example": "Internal server error"
+					}
+				},
+				"required": [
+					"message"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -98,15 +218,15 @@
 						"type": "string",
 						"example": "hero"
 					},
-					"emailName": {
+					"email": {
 						"type": "string",
 						"example": "hero@gmail.com"
 					},
-					"emailPassword": {
+					"password": {
 						"type": "string",
 						"example": "lafsU*sdf9dl"
 					},
-					"emailConfirmPassword": {
+					"confirmPassword": {
 						"type": "string",
 						"example": "lafsU*sdf9dl"
 					},
@@ -119,35 +239,708 @@
 						],
 						"example": "male"
 					},
-					"emailDob": {
+					"dob": {
 						"type": "string",
 						"example": "2025-03-05"
 					},
 					"address": {
 						"type": "string",
+						"nullable": true,
 						"example": "123 Street, City"
 					},
 					"phone": {
 						"type": "string",
+						"nullable": true,
 						"example": "9876543210"
 					},
 					"title": {
 						"type": "string",
+						"nullable": true,
 						"example": "Software Engineer"
 					},
 					"avatarUrl": {
 						"type": "string",
+						"nullable": true,
 						"example": "https://example.com/avatar.jpg"
 					}
 				},
 				"required": [
 					"firstName",
 					"lastName",
-					"emailName",
-					"emailPassword",
-					"emailConfirmPassword",
+					"email",
+					"password",
+					"confirmPassword",
 					"gender",
-					"emailDob"
+					"dob"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UserListResponse": {
+				"properties": {
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/UserResponseData"
+						},
+						"type": "array"
+					},
+					"total": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"statusCode",
+					"message",
+					"data",
+					"total"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UserUpdateRequest": {
+				"properties": {
+					"firstName": {
+						"type": "string"
+					},
+					"lastName": {
+						"type": "string"
+					},
+					"gender": {
+						"type": "string"
+					},
+					"dob": {
+						"type": "string"
+					},
+					"address": {
+						"type": "string"
+					},
+					"phone": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"avatarUrl": {
+						"type": "string"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_UserResponseData_": {
+				"properties": {
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"$ref": "#/components/schemas/UserResponseData"
+					}
+				},
+				"required": [
+					"statusCode",
+					"message",
+					"data"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"RoleUpdateRequest": {
+				"properties": {
+					"roleUids": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"example": [
+							"c289f43e-89de-42ef-8e1a-35a222b1ac12",
+							"e911ffb6-0f18-4e97-b06f-bf301cba763e"
+						]
+					}
+				},
+				"required": [
+					"roleUids"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Record_string.never_": {
+				"properties": {},
+				"type": "object",
+				"description": "Construct a type with a set of properties K of type T"
+			},
+			"DeleteUserResponse": {
+				"properties": {
+					"message": {
+						"type": "string",
+						"example": "User deleted successfully"
+					},
+					"data": {
+						"$ref": "#/components/schemas/Record_string.never_",
+						"example": {}
+					},
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					}
+				},
+				"required": [
+					"message",
+					"data",
+					"statusCode"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"DeleteUsersRequest": {
+				"properties": {
+					"uids": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"example": " [\n    \"ea66ffbf-85dc-4236-8f22-30bea8aa5b17\",\n    \"f5998680-6dd6-4c23-adea-db481e464c6d\",\n    \"7bac1c8a-b026-463b-a988-ea29468010c4\"\n  ]\n"
+					}
+				},
+				"required": [
+					"uids"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"TaskPriority": {
+				"enum": [
+					"low",
+					"medium",
+					"high"
+				],
+				"type": "string"
+			},
+			"TaskStatus": {
+				"enum": [
+					"todo",
+					"progress",
+					"completed"
+				],
+				"type": "string"
+			},
+			"TaskResponseData": {
+				"properties": {
+					"id": {
+						"type": "number",
+						"format": "double",
+						"example": 1
+					},
+					"name": {
+						"type": "string",
+						"example": "Design UI"
+					},
+					"description": {
+						"type": "string",
+						"nullable": true,
+						"example": "Design the dashboard UI for admin panel."
+					},
+					"priority": {
+						"$ref": "#/components/schemas/TaskPriority",
+						"example": "low"
+					},
+					"status": {
+						"$ref": "#/components/schemas/TaskStatus",
+						"example": "todo"
+					},
+					"startDate": {
+						"type": "string",
+						"nullable": true,
+						"example": "2025-05-06T10:00:00.000Z"
+					},
+					"endDate": {
+						"type": "string",
+						"nullable": true,
+						"example": "2025-05-10T10:00:00.000Z"
+					},
+					"estimatedHours": {
+						"type": "number",
+						"format": "double",
+						"nullable": true,
+						"example": 12.5
+					},
+					"projectId": {
+						"type": "number",
+						"format": "double",
+						"example": 3
+					},
+					"assignedToId": {
+						"type": "number",
+						"format": "double",
+						"nullable": true,
+						"example": 5
+					},
+					"createdAt": {
+						"type": "string",
+						"example": "2025-05-05T12:00:00.000Z"
+					},
+					"updatedAt": {
+						"type": "string",
+						"example": "2025-05-05T14:00:00.000Z"
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"priority",
+					"status",
+					"projectId",
+					"createdAt",
+					"updatedAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_TaskResponseData_": {
+				"properties": {
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"$ref": "#/components/schemas/TaskResponseData"
+					}
+				},
+				"required": [
+					"statusCode",
+					"message",
+					"data"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"TaskRequest": {
+				"properties": {
+					"name": {
+						"type": "string",
+						"example": "Design the dashboard UI"
+					},
+					"description": {
+						"type": "string",
+						"example": "Create a modern and responsive UI for the admin dashboard"
+					},
+					"priority": {
+						"$ref": "#/components/schemas/TaskPriority",
+						"example": "low"
+					},
+					"status": {
+						"$ref": "#/components/schemas/TaskStatus",
+						"example": "todo"
+					},
+					"startDate": {
+						"type": "string",
+						"example": "2025-05-10T09:00:00Z"
+					},
+					"endDate": {
+						"type": "string",
+						"example": "2025-05-15T17:00:00Z"
+					},
+					"estimatedHours": {
+						"type": "number",
+						"format": "double",
+						"example": 12.5
+					},
+					"assignedToId": {
+						"type": "number",
+						"format": "double",
+						"example": 3
+					},
+					"projectId": {
+						"type": "number",
+						"format": "double",
+						"example": 1
+					}
+				},
+				"required": [
+					"name",
+					"priority",
+					"status",
+					"projectId"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_any_": {
+				"properties": {
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {}
+				},
+				"required": [
+					"statusCode",
+					"message",
+					"data"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"PatchTaskRequest": {
+				"properties": {
+					"name": {
+						"type": "string",
+						"example": "Design the dashboard UI"
+					},
+					"description": {
+						"type": "string",
+						"example": "Create a modern and responsive UI for the admin dashboard"
+					},
+					"priority": {
+						"$ref": "#/components/schemas/TaskPriority",
+						"example": "low"
+					},
+					"status": {
+						"$ref": "#/components/schemas/TaskStatus",
+						"example": "todo"
+					},
+					"startDate": {
+						"type": "string",
+						"example": "2025-05-10T09:00:00Z"
+					},
+					"endDate": {
+						"type": "string",
+						"example": "2025-05-15T17:00:00Z"
+					},
+					"estimatedHours": {
+						"type": "number",
+						"format": "double",
+						"example": 12.5
+					},
+					"assignedToId": {
+						"type": "number",
+						"format": "double",
+						"example": 3
+					},
+					"projectId": {
+						"type": "number",
+						"format": "double",
+						"example": 1
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse____": {
+				"properties": {
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"properties": {},
+						"type": "object"
+					}
+				},
+				"required": [
+					"statusCode",
+					"message",
+					"data"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ProjectResponse": {
+				"properties": {
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"properties": {
+							"updatedAt": {
+								"type": "string"
+							},
+							"createdAt": {
+								"type": "string"
+							},
+							"managerId": {
+								"type": "number",
+								"format": "double",
+								"nullable": true
+							},
+							"deadline": {
+								"type": "string",
+								"nullable": true
+							},
+							"description": {
+								"type": "string",
+								"nullable": true
+							},
+							"name": {
+								"type": "string"
+							},
+							"id": {
+								"type": "number",
+								"format": "double"
+							}
+						},
+						"required": [
+							"updatedAt",
+							"createdAt",
+							"managerId",
+							"deadline",
+							"description",
+							"name",
+							"id"
+						],
+						"type": "object",
+						"example": {
+							"id": 12,
+							"name": "Website Redesign",
+							"description": "A full redesign of the company website",
+							"deadline": "2025-06-01T10:00:00.000Z",
+							"managerId": 5,
+							"createdAt": "2025-05-03T12:34:56.789Z",
+							"updatedAt": "2025-05-03T12:34:56.789Z"
+						}
+					},
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					}
+				},
+				"required": [
+					"message",
+					"data",
+					"statusCode"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ProjectRequest": {
+				"properties": {
+					"name": {
+						"type": "string",
+						"example": "Website Redesign"
+					},
+					"description": {
+						"type": "string",
+						"example": "A full redesign of the company website"
+					},
+					"deadline": {
+						"type": "string",
+						"example": "2025-06-01T10:00:00.000Z"
+					}
+				},
+				"required": [
+					"name"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"DeleteProjectResponse": {
+				"properties": {
+					"message": {
+						"type": "string",
+						"example": "Todo deleted successfully"
+					},
+					"data": {
+						"$ref": "#/components/schemas/Record_string.never_",
+						"example": {}
+					},
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					}
+				},
+				"required": [
+					"message",
+					"data",
+					"statusCode"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"LoginResponseData": {
+				"properties": {
+					"user": {
+						"$ref": "#/components/schemas/UserResponseData",
+						"example": {
+							"fullName": "hero",
+							"email": "hero@gmail.com",
+							"gender": "male",
+							"dob": "2025-03-05T00:00:00.000Z",
+							"createdAt": "2025-04-25T12:34:56.789Z"
+						}
+					},
+					"accessToken": {
+						"type": "string",
+						"example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+					},
+					"refreshToken": {
+						"type": "string",
+						"example": "60c3bf5ccbbbfdbf5dc9ec94ecedada6b..."
+					}
+				},
+				"required": [
+					"user",
+					"accessToken",
+					"refreshToken"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"LoginResponse": {
+				"properties": {
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					},
+					"message": {
+						"type": "string",
+						"example": "Login successful"
+					},
+					"data": {
+						"$ref": "#/components/schemas/LoginResponseData"
+					}
+				},
+				"required": [
+					"statusCode",
+					"message",
+					"data"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"BadRequestErrorResponse": {
+				"properties": {
+					"message": {
+						"type": "string",
+						"example": "Invalid input"
+					}
+				},
+				"required": [
+					"message"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"LoginRequest": {
+				"properties": {
+					"email": {
+						"type": "string",
+						"example": "hero@gmail.com"
+					},
+					"password": {
+						"type": "string",
+						"example": "lafsU*sdf9dl"
+					}
+				},
+				"required": [
+					"email",
+					"password"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"RefreshTokenResponseData": {
+				"properties": {
+					"accessToken": {
+						"type": "string",
+						"example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJmMTRmNmFiZS0yYWMwLTRjOTYtYWNhYi1iZjEyYmUzN2MzMjgiLCJpYXQiOjE3NDU4MTQxMTUsImV4cCI6MTc0NTgxNTAxNX0.H0R3aIgNavPHuelTMYO7j-UzL3CIB1J9LMctAA9Wubs"
+					},
+					"refreshToken": {
+						"type": "string",
+						"example": "8fc59bfb4b3952be60d003d40ec97343bda2b3d3d4600e3c6574f2a0d789696ddf8896bdf29c21a1092d78a884193230a4ee97a2dabb52c972ee605be980d1a2"
+					}
+				},
+				"required": [
+					"accessToken",
+					"refreshToken"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"RefreshTokenResponse": {
+				"properties": {
+					"message": {
+						"type": "string",
+						"example": "Token Refreshed Successfully"
+					},
+					"data": {
+						"$ref": "#/components/schemas/RefreshTokenResponseData"
+					},
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					}
+				},
+				"required": [
+					"message",
+					"data",
+					"statusCode"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"RefreshTokenRequest": {
+				"properties": {
+					"refreshToken": {
+						"type": "string",
+						"example": "8fc59bfb4b3952be60d003d40ec97343bda2b3d3d4600e3c6574f2a0d789696ddf8896bdf29c21a1092d78a884193230a4ee97a2dabb52c972ee605be980d1a2"
+					}
+				},
+				"required": [
+					"refreshToken"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"LogoutResponse": {
+				"properties": {
+					"message": {
+						"type": "string",
+						"example": "Logged out successfully"
+					},
+					"data": {
+						"$ref": "#/components/schemas/Record_string.never_",
+						"example": {}
+					},
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					}
+				},
+				"required": [
+					"message",
+					"data",
+					"statusCode"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -175,11 +968,54 @@
 				"operationId": "Create",
 				"responses": {
 					"200": {
-						"description": "Ok",
+						"description": "SignUp successful",
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/SignupResponse"
+									"$ref": "#/components/schemas/UserResponse"
+								}
+							}
+						}
+					},
+					"409": {
+						"description": "Conflict - email already registered",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Unprocessable Entity – validation errors",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								},
+								"examples": {
+									"Example 1": {
+										"value": {
+											"message": "Validation failed",
+											"errors": [
+												{
+													"field": "email",
+													"message": "Please Enter Email"
+												}
+											]
+										}
+									}
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/InternalErrorResponse"
 								}
 							}
 						}
@@ -196,6 +1032,1474 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/SignupRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/user": {
+			"get": {
+				"operationId": "GetAllUsers",
+				"responses": {
+					"200": {
+						"description": "Users fetched successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserListResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"User"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "page",
+						"required": false,
+						"schema": {
+							"default": 1,
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "limit",
+						"required": false,
+						"schema": {
+							"default": 10,
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			}
+		},
+		"/api/user/{uid}": {
+			"get": {
+				"operationId": "GetUserById",
+				"responses": {
+					"200": {
+						"description": "User fetched successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "User not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"User"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "uid",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"put": {
+				"operationId": "UpdateUser",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UserResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"User"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "uid",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UserUpdateRequest"
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "DeleteUser",
+				"responses": {
+					"200": {
+						"description": "User deletion successful",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/DeleteUserResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "User not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"User"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "uid",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api/user/{userUid}": {
+			"patch": {
+				"operationId": "UpdateRole",
+				"responses": {
+					"200": {
+						"description": "Roles updated",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_UserResponseData_"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized – wrong credentials",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/InternalErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"User"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "userUid",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RoleUpdateRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/user/uids": {
+			"delete": {
+				"operationId": "DeleteManyUser",
+				"responses": {
+					"200": {
+						"description": "User deletion successful",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/DeleteUserResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "User not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"User"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/DeleteUsersRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/tasks": {
+			"post": {
+				"operationId": "Create",
+				"responses": {
+					"200": {
+						"description": "Task Created Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_TaskResponseData_"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Create New Task",
+				"tags": [
+					"Tasks"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"description": "Task creation data including name, status, priority, etc.",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/TaskRequest",
+								"description": "Task creation data including name, status, priority, etc."
+							}
+						}
+					}
+				}
+			},
+			"get": {
+				"operationId": "GetAll",
+				"responses": {
+					"200": {
+						"description": "Task Retrieved Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"allOf": [
+										{
+											"$ref": "#/components/schemas/ApiResponse_any_"
+										},
+										{
+											"properties": {
+												"total": {}
+											},
+											"required": [
+												"total"
+											],
+											"type": "object"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Tasks"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "page",
+						"required": false,
+						"schema": {
+							"default": 1,
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "limit",
+						"required": false,
+						"schema": {
+							"default": 10,
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			}
+		},
+		"/api/tasks/{taskId}": {
+			"get": {
+				"operationId": "GetById",
+				"responses": {
+					"200": {
+						"description": "Task Retrieved Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_any_"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Tasks"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "taskId",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			},
+			"put": {
+				"operationId": "Update",
+				"responses": {
+					"200": {
+						"description": "Task Updated Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_any_"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Tasks"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "taskId",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/TaskRequest"
+							}
+						}
+					}
+				}
+			},
+			"patch": {
+				"operationId": "Patch",
+				"responses": {
+					"200": {
+						"description": "Task Updated Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_any_"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Tasks"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "taskId",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/PatchTaskRequest"
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "Delete",
+				"responses": {
+					"200": {
+						"description": "Task Deleted Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse____"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Tasks"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "taskId",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			}
+		},
+		"/api/projects": {
+			"post": {
+				"operationId": "Create",
+				"responses": {
+					"200": {
+						"description": "Project Created Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ProjectResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Projects"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ProjectRequest"
+							}
+						}
+					}
+				}
+			},
+			"get": {
+				"operationId": "GetAll",
+				"responses": {
+					"200": {
+						"description": "Project Retrieved Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"allOf": [
+										{
+											"$ref": "#/components/schemas/ApiResponse_any_"
+										},
+										{
+											"properties": {
+												"total": {}
+											},
+											"required": [
+												"total"
+											],
+											"type": "object"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Projects"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "page",
+						"required": false,
+						"schema": {
+							"default": 1,
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "limit",
+						"required": false,
+						"schema": {
+							"default": 10,
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			}
+		},
+		"/api/projects/{projectId}": {
+			"get": {
+				"operationId": "GetById",
+				"responses": {
+					"200": {
+						"description": "Project Retrieved Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ProjectResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Projects"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "projectId",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			},
+			"put": {
+				"operationId": "Update",
+				"responses": {
+					"200": {
+						"description": "Project Updated Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ProjectResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Projects"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "projectId",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ProjectRequest"
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "Delete",
+				"responses": {
+					"200": {
+						"description": "Project Deleted Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/DeleteProjectResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Projects"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "projectId",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			}
+		},
+		"/api/auth/login": {
+			"post": {
+				"operationId": "Login",
+				"responses": {
+					"200": {
+						"description": "Login successful",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/LoginResponse"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid input",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/BadRequestErrorResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized – wrong credentials",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "User not found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								},
+								"examples": {
+									"Example 1": {
+										"value": {
+											"message": "Validation failed",
+											"errors": [
+												{
+													"field": "email",
+													"message": "Please Enter Email"
+												}
+											]
+										}
+									}
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/InternalErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Auth"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/LoginRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/refresh": {
+			"post": {
+				"operationId": "Refresh",
+				"responses": {
+					"200": {
+						"description": "Token Refreshed Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/RefreshTokenResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								},
+								"examples": {
+									"Example 1": {
+										"value": {
+											"error": "Refresh token expired"
+										}
+									}
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								},
+								"examples": {
+									"Example 1": {
+										"value": {
+											"error": "User not found"
+										}
+									}
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								},
+								"examples": {
+									"Example 1": {
+										"value": {
+											"message": "Validation failed",
+											"errors": [
+												{
+													"field": "refreshToken",
+													"message": "Refresh token is required"
+												}
+											]
+										}
+									}
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/InternalErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Auth"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RefreshTokenRequest"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/api/auth/logout": {
+			"post": {
+				"operationId": "Logout",
+				"responses": {
+					"200": {
+						"description": "LoggedOut Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/LogoutResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								},
+								"examples": {
+									"Example 1": {
+										"value": {
+											"error": "Refresh token Invalid"
+										}
+									}
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								},
+								"examples": {
+									"Example 1": {
+										"value": {
+											"message": "Validation failed",
+											"errors": [
+												{
+													"field": "refreshToken",
+													"message": "Refresh Token is Required"
+												}
+											]
+										}
+									}
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/InternalErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Auth"
+				],
+				"security": [],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RefreshTokenRequest"
 							}
 						}
 					}

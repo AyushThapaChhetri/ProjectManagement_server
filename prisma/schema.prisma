@@ -22,7 +22,7 @@ datasource db {
 
 model User {
   id Int @id @default(autoincrement())
-  uid        String  @default(uuid())
+  uid        String  @default(uuid()) @unique
   firstName  String
   lastName   String
   email     String   @unique
@@ -50,7 +50,7 @@ model User {
 // );
 
 model RefreshToken{
-  rid String @id @default(uuid())
+  rid String @id @default(uuid()) @unique
   userId Int
   token String @unique
   expiresAt DateTime
@@ -65,6 +65,7 @@ model RefreshToken{
 
 model Role{
   id Int @id @default(autoincrement())
+  uid String @default(uuid()) @unique
   name String @unique
   userRoles UserRole[]
   rolePrivileges RolePrivilege[]
@@ -78,6 +79,7 @@ model Role{
 
 model Privilege{
   id Int @id @default(autoincrement())
+  uid String @default(uuid()) @unique
   name String @unique
   description String?
   rolePrivileges RolePrivilege[]
@@ -93,22 +95,23 @@ model Privilege{
 model UserRole{
   userId Int
   roleId Int
-  user User @relation(fields:[userId], references: [id])
-  role Role @relation(fields:[roleId],references:[id])
+  user User @relation(fields:[userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields:[roleId],references:[id], onDelete: Cascade)
   @@id([userId,roleId])
 }
 
-// CREATE TABLE "RolePrivilege"(
+// -- Updated SQL comment for clarity
+// CREATE TABLE "RolePrivilege" (
 //   roleId INTEGER NOT NULL REFERENCES "Role"(id) ON DELETE CASCADE,
-//   userId  INTEGER NOT NULL REFRENCES "User"(id) ON DELETE CASCADE,
-//   PRIMARY KEY(userId, roleId)
+//   privilegeId INTEGER NOT NULL REFERENCES "Privilege"(id) ON DELETE CASCADE,
+//   PRIMARY KEY (roleId, privilegeId)
 // );
 
 model RolePrivilege{
   roleId Int
   privilegeId Int
-  role Role @relation(fields:[roleId],references: [id])
-  privilege Privilege @relation(fields:[privilegeId],references: [id])
+  role Role @relation(fields:[roleId],references: [id], onDelete: Cascade)
+  privilege Privilege @relation(fields:[privilegeId],references: [id], onDelete: Cascade)
   @@id([roleId,privilegeId])
 }
 
@@ -124,11 +127,12 @@ model RolePrivilege{
 
 model Project{
   id Int @id @default(autoincrement())
+  uid String @default(uuid()) @unique
   name String
   description String?
   deadline DateTime?
-  managerId Int
-  manager User @relation(fields: [managerId],references:[id])
+  managerId Int?
+  manager User? @relation(fields: [managerId],references:[id],onDelete: SetNull)
   tasks Task[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -172,9 +176,11 @@ model Project{
 
 
 model Task {
-  id             Int    @id @default(autoincrement())
+  id  Int @id @default(autoincrement())
+  uid String @default(uuid()) @unique
+
   projectId      Int
-  project        Project @relation(fields: [projectId], references: [id])
+  project        Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   name           String
   description    String?
   priority       String
@@ -183,7 +189,7 @@ model Task {
   endDate        DateTime?
   estimatedHours Float?
   assignedToId   Int?
-  assignedTo     User? @relation(fields:[assignedToId],references:[id])
+  assignedTo     User? @relation(fields:[assignedToId],references:[id], onDelete: SetNull)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }

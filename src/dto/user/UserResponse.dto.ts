@@ -3,6 +3,9 @@
 import { Example } from "tsoa";
 
 export class UserResponseData {
+  @Example("eb23e109-3f84-4a6f-97b2-cedf2dd16f5e")
+  uid!: string;
+
   @Example("John")
   firstName!: string;
 
@@ -32,13 +35,17 @@ export class UserResponseData {
 
   @Example("2025-04-25T12:34:56.789Z")
   createdAt!: string;
+
+  // Add roles as an array of strings (if a user can have multiple roles)
+  @Example(["Admin", "Editor"])
+  roles!: string[];
 }
 
-export class SignupResponse {
+export class UserResponse {
   @Example(200)
   statusCode!: number;
 
-  @Example("User created successfully")
+  // @Example("User created successfully")
   message!: string;
 
   data!: UserResponseData;
