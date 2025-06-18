@@ -4,6 +4,7 @@ import BaseRepository from "../contract/baseRepository";
 import { UpdateUserParams } from "../../dto/user/UpdateUserParams.dto";
 // import { DBError } from "@app/service/contract/errors/dbErrorHandler";
 import { NotFoundError } from "../../service/contract/errors/errors";
+import { DeleteUsersRequest } from "../../dto/user/UserDeleteManyRequest.dto";
 
 // class UserRepository {
 //   async findById(id: number) {
@@ -12,6 +13,13 @@ import { NotFoundError } from "../../service/contract/errors/errors";
 // }
 
 class UserRepository extends BaseRepository {
+  // constructor() {
+  //   super();
+  //   const subscription = await prisma.$subscribe.message({
+  //     event: "create", // or 'update' | 'delete'
+  //   });
+  //   prisma.activitylog.insert((e)=>{insert(subsription)})
+  // }
   async checkUser(email: string) {
     return await prisma.user.findUnique({
       where: { email },
@@ -58,7 +66,23 @@ class UserRepository extends BaseRepository {
     return user;
   }
 
-  //not in use
+  async findManyUsersWithRoles(uids: DeleteUsersRequest) {
+    return await prisma.user.findMany({
+      where: {
+        uid: {
+          in: uids.uids,
+        },
+      },
+      include: {
+        userRoles: {
+          include: {
+            role: true,
+          },
+        },
+      },
+    });
+  }
+
   async findByUid(uid: string) {
     // const user = await prisma.user.findUnique({
     //   where: { uid: uid },
@@ -159,6 +183,26 @@ class UserRepository extends BaseRepository {
       data,
       include: { userRoles: { include: { role: true } } },
     });
+  }
+
+  async deleteUsers(uids: string[], userId: number[]) {
+    console.log("from repostiory delete", uids);
+    await prisma.$transaction([
+      prisma.refreshToken.deleteMany({
+        where: {
+          userId: {
+            in: userId,
+          },
+        },
+      }),
+      prisma.user.deleteMany({
+        where: {
+          uid: {
+            in: uids,
+          },
+        },
+      }),
+    ]);
   }
 
   async delete(uid: string) {

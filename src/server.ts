@@ -76,8 +76,10 @@ app.use(express.urlencoded({ extended: false }));
 // Register tsoa routes
 RegisterRoutes(app);
 
-// Add Swagger UI at /api-docs
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+if (process.env.NODE_ENV != "production") {
+  // Add Swagger UI at /api-docs
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+}
 
 // Global error handler (catches all thrown errors, including your 409 Conflict)
 // Add global error handling middleware

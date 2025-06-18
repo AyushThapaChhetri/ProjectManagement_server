@@ -8,6 +8,7 @@ import {
 } from "../contract/errors/errors";
 import { UserUpdateRequest } from "../../dto/user/UserUpdateRequest.dto";
 import { UpdateUserParams } from "../../dto/user/UpdateUserParams.dto";
+import { DeleteUsersRequest } from "../../dto/user/UserDeleteManyRequest.dto";
 
 class UserService {
   // async getCurrentUser(id: number) {
@@ -17,6 +18,7 @@ class UserService {
   // }
 
   private readonly SUPER_ADMIN_ROLE = "Super Admin";
+  private readonly ADMIN_ROLE = "Admin";
 
   async create(params: {
     firstName: string;
@@ -67,6 +69,10 @@ class UserService {
     });
 
     return user;
+  }
+
+  async findManyUsersWithRoles(uids: DeleteUsersRequest) {
+    return await UserRepository.findManyUsersWithRoles(uids);
   }
 
   async getAllPaginated(page: number, limit: number) {
@@ -150,8 +156,55 @@ class UserService {
     return updated;
   }
 
+  async deleteManyUser(uids: DeleteUsersRequest, currentUserUid: string) {
+    console.log("All the Uids from service", uids);
+    console.log("All the Uids from service", currentUserUid);
+    const currentUser = await this.getUserWithRoles(currentUserUid);
+
+    const isCurrentUserAdmin = currentUser.userRoles.some(
+      (ur) => ur.role.name === this.ADMIN_ROLE
+    );
+
+    const users = await this.findManyUsersWithRoles(uids);
+    console.log("users outside:", users);
+
+    const userId = users.map((ur) => ur.id);
+
+    if (users.length !== uids.uids.length) {
+      const foundIds = new Set(users.map((u) => u.uid));
+      const missing = uids.uids.filter((uid) => !foundIds.has(uid));
+
+      throw new NotFoundError(`Some users not found: ${missing.join(",")}`);
+    }
+
+    for (const user of users) {
+      // console.log("user from service", user);
+      console.log("user from service", user.uid);
+      const userWithRole = user;
+
+      const isTargetSuperAdmin = userWithRole.userRoles.some(
+        (ur) => ur.role.name === this.SUPER_ADMIN_ROLE
+      );
+
+      if (isTargetSuperAdmin) {
+        throw new ForbiddenError("SuperAdmin Cannot Be Deleted.");
+      }
+
+      const isTargetAdmin = userWithRole.userRoles.some(
+        (ur) => ur.role.name === this.ADMIN_ROLE
+      );
+
+      if (isCurrentUserAdmin && isTargetAdmin && user.uid !== currentUser.uid) {
+        throw new ForbiddenError("Admin cannot delete another Admin");
+      }
+    }
+
+    await UserRepository.deleteUsers(uids.uids, userId);
+  }
+
   async delete(uidToUpdate: string, currentUserUid: string) {
     // fetch roles of the user you’re about to update
+    // console.log("From user service delete");
     const userToUpdate = await this.getUserWithRoles(uidToUpdate);
     if (!userToUpdate) throw new NotFoundError("User not found");
 
