@@ -185,6 +185,14 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "DeleteUsersRequest": {
+        "dataType": "refObject",
+        "properties": {
+            "uids": {"dataType":"array","array":{"dataType":"string"},"required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "TaskPriority": {
         "dataType": "refEnum",
         "enums": ["low","medium","high"],
@@ -546,6 +554,38 @@ export function RegisterRoutes(app: Router) {
 
               await templateService.apiHandler({
                 methodName: 'updateRole',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: 200,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        const args_UserController_deleteManyUser: Record<string, TsoaRoute.ParameterSchema> = {
+                req: {"in":"request","name":"req","required":true,"dataType":"object"},
+                uids: {"in":"body","name":"uids","required":true,"ref":"DeleteUsersRequest"},
+        };
+        app.delete('/api/user/uids',
+            authenticateMiddleware([{"jwt":[]}]),
+            ...(fetchMiddlewares<RequestHandler>(_UserController)),
+            ...(fetchMiddlewares<RequestHandler>(_UserController.prototype.deleteManyUser)),
+
+            async function _UserController_deleteManyUser(request: ExRequest, response: ExResponse, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args: args_UserController_deleteManyUser, request, response });
+
+                const controller = new _UserController();
+
+              await templateService.apiHandler({
+                methodName: 'deleteManyUser',
                 controller,
                 response,
                 next,

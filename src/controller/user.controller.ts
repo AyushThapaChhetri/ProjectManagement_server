@@ -42,6 +42,7 @@ import { UpdateUserParams } from "../dto/user/UpdateUserParams.dto";
 import { UserListResponse } from "../dto/user/UserListResponse.dto";
 import { RoleUpdateRequest } from "../dto/user/RoleRequest.dto";
 import { UnauthorizedErrorResponse } from "../dto/Error/UnauthorizedErrorResponse.dto";
+import { DeleteUsersRequest } from "../dto/user/UserDeleteManyRequest.dto";
 
 // @Response<ValidationErrorResponse>(422, "Validation failed")
 // @Response<BadRequestErrorResponse>(400, "BadRequestError")
@@ -204,6 +205,28 @@ export class _UserController extends BaseController {
     return super.patchOk({
       message: "Roles updated successfully",
       data: UserDTO.single(updated),
+    });
+  }
+
+  @Security("jwt")
+  @SuccessResponse("200", "User deletion successful")
+  @Response<ErrorResponse>(404, "User not found")
+  @Delete("uids")
+  @Middlewares([
+    authorize("delete_user"), // Combines self-access + privilege
+  ])
+  async deleteManyUser(
+    @Request() req: ExRequest,
+    @Body() uids: DeleteUsersRequest
+  ): Promise<DeleteUserResponse> {
+    const currentUserUid = req.user.uid;
+
+    // console.log("All the Uids", uids);
+
+    await UserService.deleteManyUser(uids, currentUserUid);
+    return super.deleteOk({
+      message: "User deletion successfull",
+      data: {},
     });
   }
 
