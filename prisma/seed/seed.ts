@@ -158,56 +158,87 @@ async function main() {
   );
 
   // 7. Create Sample Project
+  //   const project = await prisma.project.create({
+  //     data: {
+  //       name: "E-commerce Platform",
+  //       description: "Next-gen online shopping system",
+  //       deadline: new Date(2024, 11, 31),
+  //       managerId: projectManager.id,
+  //       tasks: {
+  //         create: [
+  //           {
+  //             name: "API Development",
+  //             description: "Build RESTful endpoints",
+  //             priority: "High",
+  //             status: "In Progress",
+  //             estimatedHours: 40,
+  //             assignedToId: developer.id,
+  //           },
+  //         ],
+  //       },
+  //     },
+  //   });
+  // }
   const project = await prisma.project.create({
     data: {
       name: "E-commerce Platform",
       description: "Next-gen online shopping system",
       deadline: new Date(2024, 11, 31),
       managerId: projectManager.id,
-      tasks: {
+      createdById: projectManager.id,
+      lists: {
         create: [
           {
-            name: "API Development",
-            description: "Build RESTful endpoints",
-            priority: "High",
-            status: "In Progress",
-            estimatedHours: 40,
-            assignedToId: developer.id,
+            name: "Backend Tasks",
+            createdById: projectManager.id,
+            tasks: {
+              create: [
+                {
+                  name: "API Development",
+                  description: "Build RESTful endpoints",
+                  priority: "High",
+                  status: "In Progress",
+                  estimatedHours: 40,
+                  assignedToId: developer.id,
+                  createdById: projectManager.id,
+                  projectId: 1, //  FIX: required field
+                },
+              ],
+            },
           },
         ],
       },
     },
   });
-}
 
-async function createUserWithRole(
-  firstName: string,
-  lastName: string,
-  email: string,
-  roleName: string
-) {
-  return prisma.user.create({
-    data: {
-      firstName,
-      lastName,
-      email,
-      password: await bcrypt.hash(
-        process.env.OTHER_USER_PASSWORD!,
-        SALT_ROUNDS
-      ),
-      gender: "male",
-      dob: new Date(1990, 0, 1),
-      userRoles: {
-        create: {
-          role: {
-            connect: { name: roleName },
+  async function createUserWithRole(
+    firstName: string,
+    lastName: string,
+    email: string,
+    roleName: string
+  ) {
+    return prisma.user.create({
+      data: {
+        firstName,
+        lastName,
+        email,
+        password: await bcrypt.hash(
+          process.env.OTHER_USER_PASSWORD!,
+          SALT_ROUNDS
+        ),
+        gender: "male",
+        dob: new Date(1990, 0, 1),
+        userRoles: {
+          create: {
+            role: {
+              connect: { name: roleName },
+            },
           },
         },
       },
-    },
-  });
+    });
+  }
 }
-
 main()
   .catch((e) => {
     console.error("Seeding failed:", e);

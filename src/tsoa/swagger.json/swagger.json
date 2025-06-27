@@ -426,28 +426,11 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"TaskPriority": {
-				"enum": [
-					"low",
-					"medium",
-					"high"
-				],
-				"type": "string"
-			},
-			"TaskStatus": {
-				"enum": [
-					"todo",
-					"progress",
-					"completed"
-				],
-				"type": "string"
-			},
 			"TaskResponseData": {
 				"properties": {
-					"id": {
-						"type": "number",
-						"format": "double",
-						"example": 1
+					"uid": {
+						"type": "string",
+						"example": "01HYZ123ABC456DEF789GHIJ"
 					},
 					"name": {
 						"type": "string",
@@ -459,11 +442,11 @@
 						"example": "Design the dashboard UI for admin panel."
 					},
 					"priority": {
-						"$ref": "#/components/schemas/TaskPriority",
+						"type": "string",
 						"example": "low"
 					},
 					"status": {
-						"$ref": "#/components/schemas/TaskStatus",
+						"type": "string",
 						"example": "todo"
 					},
 					"startDate": {
@@ -482,16 +465,18 @@
 						"nullable": true,
 						"example": 12.5
 					},
-					"projectId": {
-						"type": "number",
-						"format": "double",
-						"example": 3
+					"projectUid": {
+						"type": "string",
+						"example": "01HXPROJUID456XYZABC7890"
 					},
-					"assignedToId": {
-						"type": "number",
-						"format": "double",
+					"assignedToUid": {
+						"type": "string",
 						"nullable": true,
-						"example": 5
+						"example": "01HXUSERUID456XYZABC7890"
+					},
+					"createdByUid": {
+						"type": "string",
+						"example": "abc123-user-uid"
 					},
 					"createdAt": {
 						"type": "string",
@@ -503,11 +488,12 @@
 					}
 				},
 				"required": [
-					"id",
+					"uid",
 					"name",
 					"priority",
 					"status",
-					"projectId",
+					"projectUid",
+					"createdByUid",
 					"createdAt",
 					"updatedAt"
 				],
@@ -535,6 +521,22 @@
 				],
 				"type": "object",
 				"additionalProperties": false
+			},
+			"TaskPriority": {
+				"enum": [
+					"low",
+					"medium",
+					"high"
+				],
+				"type": "string"
+			},
+			"TaskStatus": {
+				"enum": [
+					"todo",
+					"progress",
+					"completed"
+				],
+				"type": "string"
 			},
 			"TaskRequest": {
 				"properties": {
@@ -567,22 +569,29 @@
 						"format": "double",
 						"example": 12.5
 					},
-					"assignedToId": {
-						"type": "number",
-						"format": "double",
-						"example": 3
+					"assignedToUid": {
+						"type": "string",
+						"example": "c289f43e-89de-42ef-8e1a-35a222d1ac12"
 					},
-					"projectId": {
-						"type": "number",
-						"format": "double",
-						"example": 1
+					"createdByUid": {
+						"type": "string",
+						"example": "c289f43e-89de-42ef-8e1a-35a222d1ac12"
+					},
+					"projectUid": {
+						"type": "string",
+						"example": "c289f43e-89de-42ef-8e1a-35a222d1ac12"
+					},
+					"listUid": {
+						"type": "string",
+						"example": "c289f43e-89de-42ef-8e1a-35a222d1ac12"
 					}
 				},
 				"required": [
 					"name",
 					"priority",
 					"status",
-					"projectId"
+					"projectUid",
+					"listUid"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -638,14 +647,12 @@
 						"format": "double",
 						"example": 12.5
 					},
-					"assignedToId": {
-						"type": "number",
-						"format": "double",
+					"assignedToUid": {
+						"type": "string",
 						"example": 3
 					},
-					"projectId": {
-						"type": "number",
-						"format": "double",
+					"projectUid": {
+						"type": "string",
 						"example": 1
 					}
 				},
@@ -677,68 +684,72 @@
 			},
 			"ProjectResponse": {
 				"properties": {
-					"message": {
-						"type": "string"
+					"uid": {
+						"type": "string",
+						"example": "01HYZ123ABC456DEF789GHIJ"
 					},
-					"data": {
-						"properties": {
-							"updatedAt": {
-								"type": "string"
-							},
-							"createdAt": {
-								"type": "string"
-							},
-							"managerId": {
-								"type": "number",
-								"format": "double",
-								"nullable": true
-							},
-							"deadline": {
-								"type": "string",
-								"nullable": true
-							},
-							"description": {
-								"type": "string",
-								"nullable": true
-							},
-							"name": {
-								"type": "string"
-							},
-							"id": {
-								"type": "number",
-								"format": "double"
-							}
-						},
-						"required": [
-							"updatedAt",
-							"createdAt",
-							"managerId",
-							"deadline",
-							"description",
-							"name",
-							"id"
-						],
-						"type": "object",
-						"example": {
-							"id": 12,
-							"name": "Website Redesign",
-							"description": "A full redesign of the company website",
-							"deadline": "2025-06-01T10:00:00.000Z",
-							"managerId": 5,
-							"createdAt": "2025-05-03T12:34:56.789Z",
-							"updatedAt": "2025-05-03T12:34:56.789Z"
-						}
+					"name": {
+						"type": "string",
+						"example": "Website Redesign"
 					},
+					"description": {
+						"type": "string",
+						"nullable": true,
+						"example": "A full redesign of the company website"
+					},
+					"deadline": {
+						"type": "string",
+						"nullable": true,
+						"example": "2025-06-01T10:00:00.000Z"
+					},
+					"createdAt": {
+						"type": "string",
+						"example": "2025-05-03T12:34:56.789Z"
+					},
+					"updatedAt": {
+						"type": "string",
+						"example": "2025-05-03T12:34:56.789Z"
+					},
+					"managerUid": {
+						"type": "string",
+						"nullable": true,
+						"example": 12
+					},
+					"createdByUid": {
+						"type": "string",
+						"nullable": true,
+						"example": 45
+					}
+				},
+				"required": [
+					"uid",
+					"name",
+					"description",
+					"deadline",
+					"createdAt",
+					"updatedAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_ProjectResponse_": {
+				"properties": {
 					"statusCode": {
 						"type": "number",
 						"format": "double",
 						"example": 200
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"$ref": "#/components/schemas/ProjectResponse"
 					}
 				},
 				"required": [
+					"statusCode",
 					"message",
-					"data",
-					"statusCode"
+					"data"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -756,6 +767,10 @@
 					"deadline": {
 						"type": "string",
 						"example": "2025-06-01T10:00:00.000Z"
+					},
+					"managerUid": {
+						"type": "string",
+						"example": "c289f43e-89de-42ef-8e1a-35a222d1ac12"
 					}
 				},
 				"required": [
@@ -763,6 +778,28 @@
 				],
 				"type": "object",
 				"additionalProperties": false
+			},
+			"Partial_ProjectRequest_": {
+				"properties": {
+					"name": {
+						"type": "string",
+						"example": "Website Redesign"
+					},
+					"description": {
+						"type": "string",
+						"example": "A full redesign of the company website"
+					},
+					"deadline": {
+						"type": "string",
+						"example": "2025-06-01T10:00:00.000Z"
+					},
+					"managerUid": {
+						"type": "string",
+						"example": "c289f43e-89de-42ef-8e1a-35a222d1ac12"
+					}
+				},
+				"type": "object",
+				"description": "Make all properties in T optional"
 			},
 			"DeleteProjectResponse": {
 				"properties": {
@@ -785,6 +822,129 @@
 					"data",
 					"statusCode"
 				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ListResponseData": {
+				"properties": {
+					"uid": {
+						"type": "string",
+						"example": "01HXYZABCDEF1234567890"
+					},
+					"name": {
+						"type": "string",
+						"example": "In Preview"
+					},
+					"createdByUid": {
+						"type": "string",
+						"nullable": true,
+						"example": "abc123-user-uid"
+					},
+					"projectUid": {
+						"type": "string",
+						"example": "abc456-project-uid"
+					},
+					"createdAt": {
+						"type": "string",
+						"example": "2025-05-05T12:00:00.000Z"
+					},
+					"updatedAt": {
+						"type": "string",
+						"example": "2025-05-05T14:00:00.000Z"
+					}
+				},
+				"required": [
+					"uid",
+					"name",
+					"createdByUid",
+					"projectUid",
+					"createdAt",
+					"updatedAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_ListResponseData_": {
+				"properties": {
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"$ref": "#/components/schemas/ListResponseData"
+					}
+				},
+				"required": [
+					"statusCode",
+					"message",
+					"data"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ListRequest": {
+				"properties": {
+					"name": {
+						"type": "string",
+						"example": "Design the dashboard UI"
+					},
+					"projectUid": {
+						"type": "string",
+						"example": "c289f43e-89de-42ef-8e1a-35a222d1ac12"
+					}
+				},
+				"required": [
+					"name",
+					"projectUid"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ListResponse": {
+				"properties": {
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/ListResponseData"
+						},
+						"type": "array"
+					},
+					"total": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"statusCode",
+					"message",
+					"data",
+					"total"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"PatchListRequest": {
+				"properties": {
+					"name": {
+						"type": "string",
+						"example": "New list name"
+					},
+					"projectUid": {
+						"type": "string",
+						"example": "c289f43e-89de-42ef-8e1a-35a222d1ac12"
+					}
+				},
 				"type": "object",
 				"additionalProperties": false
 			},
@@ -1091,7 +1251,7 @@
 		},
 		"/api/user/{uid}": {
 			"get": {
-				"operationId": "GetUserById",
+				"operationId": "GetUserByUid",
 				"responses": {
 					"200": {
 						"description": "User fetched successfully",
@@ -1508,9 +1668,9 @@
 				]
 			}
 		},
-		"/api/tasks/{taskId}": {
+		"/api/tasks/{taskUid}": {
 			"get": {
-				"operationId": "GetById",
+				"operationId": "GetByUid",
 				"responses": {
 					"200": {
 						"description": "Task Retrieved Successfully",
@@ -1574,11 +1734,10 @@
 				"parameters": [
 					{
 						"in": "path",
-						"name": "taskId",
+						"name": "taskUid",
 						"required": true,
 						"schema": {
-							"format": "double",
-							"type": "number"
+							"type": "string"
 						}
 					}
 				]
@@ -1648,11 +1807,10 @@
 				"parameters": [
 					{
 						"in": "path",
-						"name": "taskId",
+						"name": "taskUid",
 						"required": true,
 						"schema": {
-							"format": "double",
-							"type": "number"
+							"type": "string"
 						}
 					}
 				],
@@ -1732,11 +1890,10 @@
 				"parameters": [
 					{
 						"in": "path",
-						"name": "taskId",
+						"name": "taskUid",
 						"required": true,
 						"schema": {
-							"format": "double",
-							"type": "number"
+							"type": "string"
 						}
 					}
 				],
@@ -1816,11 +1973,10 @@
 				"parameters": [
 					{
 						"in": "path",
-						"name": "taskId",
+						"name": "taskUid",
 						"required": true,
 						"schema": {
-							"format": "double",
-							"type": "number"
+							"type": "string"
 						}
 					}
 				]
@@ -1835,7 +1991,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ProjectResponse"
+									"$ref": "#/components/schemas/ApiResponse_ProjectResponse_"
 								}
 							}
 						}
@@ -2000,7 +2156,7 @@
 				]
 			}
 		},
-		"/api/projects/{projectId}": {
+		"/api/projects/{projectUid}": {
 			"get": {
 				"operationId": "GetById",
 				"responses": {
@@ -2009,7 +2165,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ProjectResponse"
+									"$ref": "#/components/schemas/ApiResponse_ProjectResponse_"
 								}
 							}
 						}
@@ -2066,11 +2222,10 @@
 				"parameters": [
 					{
 						"in": "path",
-						"name": "projectId",
+						"name": "projectUid",
 						"required": true,
 						"schema": {
-							"format": "double",
-							"type": "number"
+							"type": "string"
 						}
 					}
 				]
@@ -2083,7 +2238,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ProjectResponse"
+									"$ref": "#/components/schemas/ApiResponse_ProjectResponse_"
 								}
 							}
 						}
@@ -2140,11 +2295,10 @@
 				"parameters": [
 					{
 						"in": "path",
-						"name": "projectId",
+						"name": "projectUid",
 						"required": true,
 						"schema": {
-							"format": "double",
-							"type": "number"
+							"type": "string"
 						}
 					}
 				],
@@ -2154,6 +2308,89 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/ProjectRequest"
+							}
+						}
+					}
+				}
+			},
+			"patch": {
+				"operationId": "Patch",
+				"responses": {
+					"200": {
+						"description": "Project Updated Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_ProjectResponse_"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Projects"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "projectUid",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Partial_ProjectRequest_"
 							}
 						}
 					}
@@ -2224,11 +2461,485 @@
 				"parameters": [
 					{
 						"in": "path",
-						"name": "projectId",
+						"name": "projectUid",
 						"required": true,
 						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api/lists": {
+			"post": {
+				"operationId": "Create",
+				"responses": {
+					"200": {
+						"description": "List Created Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_ListResponseData_"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Lists"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ListRequest"
+							}
+						}
+					}
+				}
+			},
+			"get": {
+				"operationId": "GetAll",
+				"responses": {
+					"200": {
+						"description": "List Retrieved Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ListResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Lists"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "page",
+						"required": false,
+						"schema": {
+							"default": 1,
 							"format": "double",
 							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "limit",
+						"required": false,
+						"schema": {
+							"default": 10,
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			}
+		},
+		"/api/lists/{listUid}": {
+			"get": {
+				"operationId": "GetByUid",
+				"responses": {
+					"200": {
+						"description": "List Retrieved Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_ListResponseData_"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Lists"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "listUid",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"put": {
+				"operationId": "Update",
+				"responses": {
+					"200": {
+						"description": "List Updated Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_ListResponseData_"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Lists"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "listUid",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ListRequest"
+							}
+						}
+					}
+				}
+			},
+			"patch": {
+				"operationId": "Patch",
+				"responses": {
+					"200": {
+						"description": "List Updated Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_ListResponseData_"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Lists"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "listUid",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/PatchListRequest"
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "Delete",
+				"responses": {
+					"200": {
+						"description": "List Deleted Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse____"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Lists"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "listUid",
+						"required": true,
+						"schema": {
+							"type": "string"
 						}
 					}
 				]

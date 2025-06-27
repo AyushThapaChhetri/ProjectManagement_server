@@ -10,7 +10,7 @@ import { UserUpdateRequest } from "../../dto/user/UserUpdateRequest.dto";
 import { UpdateUserParams } from "../../dto/user/UpdateUserParams.dto";
 import { DeleteUsersRequest } from "../../dto/user/UserDeleteManyRequest.dto";
 
-class UserService {
+class _UserService {
   // async getCurrentUser(id: number) {
   //   const userProfile = await UserRepository.findById(id);
   //   console.log("Profile from service: ", userProfile);
@@ -206,10 +206,8 @@ class UserService {
     // fetch roles of the user you’re about to update
     // console.log("From user service delete");
     const userToUpdate = await this.getUserWithRoles(uidToUpdate);
-    if (!userToUpdate) throw new NotFoundError("User not found");
 
     const currentUser = await this.getUserWithRoles(currentUserUid);
-    if (!currentUser) throw new ForbiddenError("Current user not authorized");
 
     const isTargetSuperAdmin = userToUpdate.userRoles.some(
       (ur) => ur.role.name === this.SUPER_ADMIN_ROLE
@@ -228,9 +226,9 @@ class UserService {
       throw new ForbiddenError("Cannot modify other superAdmin accounts");
     }
 
-    return UserRepository.delete(uidToUpdate);
+    return await UserRepository.delete(uidToUpdate);
   }
 }
 
-export default new UserService();
+export const UserService = new _UserService();
 // export default new _UserService();

@@ -3,8 +3,8 @@ import { Example } from "tsoa";
 import { TaskPriority, TaskStatus } from "./TaskRequest.dto";
 
 export class TaskResponseData {
-  @Example(1)
-  id!: number;
+  @Example("01HYZ123ABC456DEF789GHIJ")
+  uid!: string;
 
   @Example("Design UI")
   name!: string;
@@ -13,10 +13,10 @@ export class TaskResponseData {
   description?: string | null;
 
   @Example(TaskPriority.LOW)
-  priority: TaskPriority; // Use literal types or enums
+  priority: string;
 
   @Example(TaskStatus.TODO)
-  status: TaskStatus;
+  status: string;
 
   @Example("2025-05-06T10:00:00.000Z")
   startDate?: string | null;
@@ -27,11 +27,14 @@ export class TaskResponseData {
   @Example(12.5)
   estimatedHours?: number | null;
 
-  @Example(3)
-  projectId!: number;
+  @Example("01HXPROJUID456XYZABC7890")
+  projectUid!: string;
 
-  @Example(5)
-  assignedToId?: number | null;
+  @Example("01HXUSERUID456XYZABC7890")
+  assignedToUid?: string | null;
+
+  @Example("abc123-user-uid")
+  createdByUid!: string;
 
   @Example("2025-05-05T12:00:00.000Z")
   createdAt!: string;

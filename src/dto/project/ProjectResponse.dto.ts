@@ -1,28 +1,28 @@
+// src/dto/project/ProjectResponse.dto.ts
 import { Example } from "tsoa";
 
 export class ProjectResponse {
-  // @Example("Project Created Successfully")
-  message!: string;
+  @Example("01HYZ123ABC456DEF789GHIJ")
+  uid!: string;
 
-  @Example({
-    id: 12,
-    name: "Website Redesign",
-    description: "A full redesign of the company website",
-    deadline: "2025-06-01T10:00:00.000Z",
-    managerId: 5,
-    createdAt: "2025-05-03T12:34:56.789Z",
-    updatedAt: "2025-05-03T12:34:56.789Z",
-  })
-  data!: {
-    id: number;
-    name: string;
-    description: string | null;
-    deadline: string | null;
-    managerId: number | null;
-    createdAt: string;
-    updatedAt: string;
-  };
+  @Example("Website Redesign")
+  name!: string;
 
-  @Example(200)
-  statusCode!: number;
+  @Example("A full redesign of the company website")
+  description!: string | null;
+
+  @Example("2025-06-01T10:00:00.000Z")
+  deadline!: string | null;
+
+  @Example("2025-05-03T12:34:56.789Z")
+  createdAt!: string;
+
+  @Example("2025-05-03T12:34:56.789Z")
+  updatedAt!: string;
+
+  @Example(12)
+  managerUid?: string | null;
+
+  @Example(45)
+  createdByUid?: string | null;
 }

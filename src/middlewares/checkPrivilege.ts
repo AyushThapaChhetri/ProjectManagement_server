@@ -22,9 +22,12 @@ export const checkPrivilege = (requiredPrivilege: string) => {
       )
     );
     if (!hasPrivilege) {
-      return res
-        .status(403)
-        .json({ error: `User lacks '${requiredPrivilege}' privilege` });
+      return (
+        res
+          .status(403)
+          // .json({ error: `User lacks '${requiredPrivilege}' privilege` });
+          .json({ error: `User lacks privilege` })
+      );
     }
     next();
   };

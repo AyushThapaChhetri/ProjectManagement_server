@@ -9,7 +9,11 @@
     "start": "npm run build && nodemon -r tsconfig-paths/register src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "db:seed": "prisma db seed",
+    "seed:lists": "ts-node prisma/seed/seed-list-privileges.ts",
     "ts": "ts-node -r tsconfig-paths/register"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed/seed.ts"
   },
   "keywords": [],
   "author": "",
@@ -19,7 +23,6 @@
     "@prisma/client": "^6.10.0",
     "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.17",
-    "@types/node": "^22.13.9",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -39,14 +42,12 @@
     "@types/dotenv": "^6.1.1",
     "@types/express": "^5.0.1",
     "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^24.0.4",
     "@types/passport": "^1.0.17",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
     "@types/uuid": "^10.0.0",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.2"
-  },
-  "prisma": {
-    "seed": "ts-node prisma/seed.ts"
   }
 }

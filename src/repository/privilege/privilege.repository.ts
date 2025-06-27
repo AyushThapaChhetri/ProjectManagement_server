@@ -1,7 +1,7 @@
 import prisma from "@app/config/db.config";
 import BaseRepository from "../contract/baseRepository";
 
-class PrivilegeRepository extends BaseRepository {
+class _PrivilegeRepository extends BaseRepository {
   async create(name: string, description?: string) {
     return super.dbCatch(
       prisma.privilege.create({
@@ -13,6 +13,12 @@ class PrivilegeRepository extends BaseRepository {
   async findAll() {
     return super.dbCatch(prisma.privilege.findMany());
   }
+
+  async findPrivilegeByIds(Ids: number[]) {
+    return prisma.privilege.findMany({
+      where: { id: { in: Ids } },
+    });
+  }
 }
 
-export default new PrivilegeRepository();
+export const PrivilegeRepository = new _PrivilegeRepository();

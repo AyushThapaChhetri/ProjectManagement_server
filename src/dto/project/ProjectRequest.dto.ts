@@ -10,6 +10,6 @@ export class ProjectRequest {
   @Example("2025-06-01T10:00:00.000Z")
   deadline?: string; // ISO format
 
-  // @Example(5)
-  // managerId!: number; // Although you will override this based on the authenticated user
+  @Example("c289f43e-89de-42ef-8e1a-35a222d1ac12")
+  managerUid?: string; // ISO format
 }

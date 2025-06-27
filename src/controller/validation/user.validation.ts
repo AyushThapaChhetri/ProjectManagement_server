@@ -2,16 +2,16 @@ import * as yup from "yup";
 
 import BaseYup from "../contract/baseValidator.contract";
 
-const trimEmptyToUndefined = (originalValue: unknown) => {
-  const trimmed =
-    typeof originalValue === "string" ? originalValue.trim() : originalValue;
+// const trimEmptyToUndefined = (originalValue: unknown) => {
+//   const trimmed =
+//     typeof originalValue === "string" ? originalValue.trim() : originalValue;
 
-  if (trimmed === undefined || trimmed === "" || trimmed === null) {
-    return undefined;
-  }
+//   if (trimmed === undefined || trimmed === "" || trimmed === null) {
+//     return undefined;
+//   }
 
-  return trimmed;
-};
+//   return trimmed;
+// };
 
 const parseDateSafely = (value: unknown): Date | null => {
   const trimmed = typeof value === "string" ? value.trim() : value;
@@ -75,76 +75,147 @@ export const UserSignupValidationSchema = BaseYup.object({
       }
     ),
 
+  // address: BaseYup.string()
+  //   .transform((value, originalValue) => {
+  //     const trimmed = originalValue?.trim?.(); // safely trim if it's a string
+
+  //     if (trimmed === undefined || trimmed === "" || trimmed === null) {
+  //       return null;
+  //     }
+
+  //     return trimmed;
+  //   })
+  //   .max(100, "Address is too long")
+  //   .nullable()
+  //   .optional(),
+
+  // phone: BaseYup.string()
+  //   .transform((_, original) =>
+  //     typeof original === "string" && original.trim() === ""
+  //       ? undefined
+  //       : original?.trim()
+  //   )
+  //   .matches(/^[0-9]{10}$/, "Phone must be a 10-digit number")
+  //   .nullable()
+  //   .optional(),
+
+  // title: BaseYup.string()
+  //   .transform((value, originalValue) => {
+  //     const trimmed = originalValue?.trim?.(); // safely trim if it's a string
+
+  //     if (trimmed === undefined || trimmed === "" || trimmed === null) {
+  //       return null;
+  //     }
+
+  //     return trimmed;
+  //   })
+  //   .max(50, "Title is too long")
+  //   .nullable()
+  //   .optional(),
+
+  // avatarUrl: BaseYup.string()
+  //   .transform((value, originalValue) => {
+  //     const trimmed = originalValue?.trim?.(); // safely trim if it's a string
+
+  //     if (trimmed === undefined || trimmed === "" || trimmed === null) {
+  //       return null;
+  //     }
+
+  //     return trimmed;
+  //   })
+  //   .url("Avatar must be a valid URL")
+  //   .nullable()
+  //   .optional(),
   address: BaseYup.string()
-    .transform((value, originalValue) => {
-      const trimmed = originalValue?.trim?.(); // safely trim if it's a string
-
-      if (trimmed === undefined || trimmed === "" || trimmed === null) {
-        return null;
-      }
-
-      return trimmed;
-    })
     .max(100, "Address is too long")
     .nullable()
     .optional(),
 
   phone: BaseYup.string()
-    .transform((_, original) =>
-      typeof original === "string" && original.trim() === ""
-        ? undefined
-        : original?.trim()
-    )
     .matches(/^[0-9]{10}$/, "Phone must be a 10-digit number")
     .nullable()
     .optional(),
 
-  title: BaseYup.string()
-    .transform((value, originalValue) => {
-      const trimmed = originalValue?.trim?.(); // safely trim if it's a string
-
-      if (trimmed === undefined || trimmed === "" || trimmed === null) {
-        return null;
-      }
-
-      return trimmed;
-    })
-    .max(50, "Title is too long")
-    .nullable()
-    .optional(),
+  title: BaseYup.string().max(50, "Title is too long").nullable().optional(),
 
   avatarUrl: BaseYup.string()
-    .transform((value, originalValue) => {
-      const trimmed = originalValue?.trim?.(); // safely trim if it's a string
-
-      if (trimmed === undefined || trimmed === "" || trimmed === null) {
-        return null;
-      }
-
-      return trimmed;
-    })
     .url("Avatar must be a valid URL")
     .nullable()
     .optional(),
 });
 
+// export const UserUpdateValidationSchema = BaseYup.object({
+//   firstName: BaseYup.string()
+//     .trim()
+//     .min(2, "First name is too short")
+//     .max(30, "First name is too long")
+//     .optional(),
+
+//   lastName: BaseYup.string()
+//     .trim()
+//     .min(2, "Last name is too short")
+//     .max(30, "Last name is too long")
+//     .optional(),
+
+//   email: BaseYup.string().trim().email("Invalid email").optional(),
+
+//   gender: BaseYup.string()
+//     .trim()
+//     .oneOf(["male", "female", "other"], "Invalid gender")
+//     .optional(),
+
+//   password: BaseYup.string().strip(),
+//   confirmPassword: BaseYup.string().strip(),
+
+//   dob: BaseYup.string()
+//     .test("is-valid-date", "Invalid date format", (value) => {
+//       return parseDateSafely(value) !== null;
+//     })
+//     .test(
+//       "not-future-date",
+//       "Date of birth cannot be in the future",
+//       (value) => {
+//         const date = parseDateSafely(value);
+//         if (!date) return true;
+//         return date <= new Date();
+//       }
+//     )
+//     .optional(),
+
+//   address: BaseYup.string()
+//     .transform((_, originalValue) => trimEmptyToUndefined(originalValue))
+//     .max(100, "Address is too long")
+//     .optional(),
+
+//   phone: BaseYup.string()
+//     .transform((_, originalValue) => trimEmptyToUndefined(originalValue))
+//     .matches(/^[0-9]{10}$/, "Phone must be a 10-digit number")
+//     .optional(),
+
+//   title: BaseYup.string()
+//     .transform((_, originalValue) => trimEmptyToUndefined(originalValue))
+//     .max(50, "Title is too long")
+//     .optional(),
+
+//   avatarUrl: BaseYup.string()
+//     .transform((_, originalValue) => trimEmptyToUndefined(originalValue))
+//     .url("Avatar must be a valid URL")
+//     .optional(),
+// });
 export const UserUpdateValidationSchema = BaseYup.object({
   firstName: BaseYup.string()
-    .trim()
     .min(2, "First name is too short")
     .max(30, "First name is too long")
     .optional(),
 
   lastName: BaseYup.string()
-    .trim()
     .min(2, "Last name is too short")
     .max(30, "Last name is too long")
     .optional(),
 
-  email: BaseYup.string().trim().email("Invalid email").optional(),
+  email: BaseYup.string().email("Invalid email").optional(),
 
   gender: BaseYup.string()
-    .trim()
     .oneOf(["male", "female", "other"], "Invalid gender")
     .optional(),
 
@@ -160,29 +231,18 @@ export const UserUpdateValidationSchema = BaseYup.object({
       "Date of birth cannot be in the future",
       (value) => {
         const date = parseDateSafely(value);
-        if (!date) return true;
-        return date <= new Date();
+        return !date || date <= new Date();
       }
     )
     .optional(),
 
-  address: BaseYup.string()
-    .transform((_, originalValue) => trimEmptyToUndefined(originalValue))
-    .max(100, "Address is too long")
-    .optional(),
+  address: BaseYup.string().max(100, "Address is too long").optional(),
 
   phone: BaseYup.string()
-    .transform((_, originalValue) => trimEmptyToUndefined(originalValue))
     .matches(/^[0-9]{10}$/, "Phone must be a 10-digit number")
     .optional(),
 
-  title: BaseYup.string()
-    .transform((_, originalValue) => trimEmptyToUndefined(originalValue))
-    .max(50, "Title is too long")
-    .optional(),
+  title: BaseYup.string().max(50, "Title is too long").optional(),
 
-  avatarUrl: BaseYup.string()
-    .transform((_, originalValue) => trimEmptyToUndefined(originalValue))
-    .url("Avatar must be a valid URL")
-    .optional(),
+  avatarUrl: BaseYup.string().url("Avatar must be a valid URL").optional(),
 });

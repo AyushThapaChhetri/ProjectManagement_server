@@ -6,61 +6,19 @@ import {
 } from "../contract/errors/errors";
 import TaskRepository from "../../repository/task/task.repository";
 import { User } from "@prisma/client";
-import UserService from "../user/user.service";
+
 import { PatchTaskRequest } from "@app/dto/task/PatchTaskRequest.dto";
+import { ListService } from "../list/list.service";
+import { RoleService } from "../role/role.service";
+import { UserService } from "../user/user.service";
+import { ProjectService } from "../project/project.service";
 
 class TaskService {
-  async create(params: {
-    projectId: number;
-    name: string;
-    description?: string;
-    priority: string;
-    status: string;
-    startDate?: Date;
-    endDate?: Date;
-    estimatedHours?: number;
-    assignedToId?: number;
-  }) {
-    const { projectId, assignedToId } = params;
-
-    const projectExists = await prisma.project.findUnique({
-      where: { id: projectId },
-    });
-
-    if (!projectExists) {
-      throw new NotFoundError(`Project doesn't exist: ${projectId}`);
-    }
-
-    if (assignedToId) {
-      const userExists = await prisma.user.findUnique({
-        where: { id: assignedToId },
-      });
-
-      if (!userExists) {
-        throw new NotFoundError(`Assigned user doesn't exist: ${assignedToId}`);
-      }
-    }
-
-    return TaskRepository.create(params);
-  }
-
-  async getAllPaginated(page: number, limit: number) {
-    return TaskRepository.findAllPaginated(page, limit);
-  }
-
-  async getById(taskId: number) {
-    const existingTask = await TaskRepository.findById(taskId);
-
-    if (!existingTask) {
-      throw new NotFoundError("Task not found");
-    }
-    return TaskRepository.findById(taskId);
-  }
-
-  async updateTask(
-    taskId: number,
-    updateData: {
-      projectId: number;
+  async create(
+    currentUserUid: string,
+    params: {
+      projectUid: string;
+      listUid: string;
       name: string;
       description?: string;
       priority: string;
@@ -68,23 +26,109 @@ class TaskService {
       startDate?: Date;
       endDate?: Date;
       estimatedHours?: number;
-      assignedToId?: number;
+      assignedToUid?: string;
     }
   ) {
-    const existingTask = await TaskRepository.findById(taskId);
+    const { projectUid, listUid, assignedToUid } = params;
 
-    if (!existingTask) {
-      throw new BadRequestError("Task not found");
+    // 1. Validate project and list
+    const project = await ProjectService.getByUid(projectUid);
+    const list = await ListService.getByUid(listUid);
+
+    let assignedToId: number | undefined;
+    if (assignedToUid) {
+      const assignedUser = await UserService.findByUid(assignedToUid);
+      assignedToId = assignedUser.id;
     }
 
-    return TaskRepository.updateTask(taskId, updateData);
+    const currentUser = await UserService.getUserWithRoles(currentUserUid);
+    const currentUserId = currentUser.id;
+
+    // 4. Prepare and pass full task data to repository
+    const taskData = {
+      name: params.name,
+      description: params.description,
+      priority: params.priority,
+      status: params.status,
+      startDate: params.startDate,
+      endDate: params.endDate,
+      estimatedHours: params.estimatedHours,
+      assignedToId,
+      createdById: currentUserId,
+      projectId: project.id,
+      listId: list.id,
+    };
+
+    const task = await TaskRepository.create(taskData);
+    const AddResponseTask = {
+      ...task,
+      projectUid,
+      listUid,
+      assignedToUid,
+      createdByUid: currentUserUid,
+    };
+    return AddResponseTask;
+  }
+
+  async getAllPaginated(page: number, limit: number) {
+    return TaskRepository.findAllPaginated(page, limit);
+  }
+
+  async getByUid(taskUid: string) {
+    const Task = await TaskRepository.findByUid(taskUid);
+
+    if (!Task) {
+      throw new NotFoundError("Task not found");
+    }
+    return Task;
+  }
+
+  async updateTask(
+    taskUid: string,
+    updateData: {
+      projectUid: string;
+      listUid: string;
+      name: string;
+      description?: string;
+      priority: string;
+      status: string;
+      startDate?: Date;
+      endDate?: Date;
+      estimatedHours?: number;
+      assignedToUid?: string;
+    }
+  ) {
+    const Task = await this.getByUid(taskUid);
+    const project = await ProjectService.getByUid(updateData.projectUid);
+    const list = await ListService.getByUid(updateData.listUid);
+
+    const data = {
+      name: updateData.name,
+      description: updateData.description,
+      priority: updateData.priority,
+      status: updateData.status,
+      startDate: updateData.startDate,
+      endDate: updateData.endDate,
+      estimatedHours: updateData.estimatedHours,
+      projectId: project.id,
+      listId: list.id,
+    };
+    let assignedToId: number | undefined;
+    if (updateData.assignedToUid) {
+      const user = await UserService.findByUid(updateData.assignedToUid);
+      assignedToId = user.id;
+    }
+
+    const taskData = { ...data, assignedToId };
+    return TaskRepository.updateTask(taskUid, taskData);
   }
 
   async patch(
     uid: string,
-    taskId: number,
+    taskUid: string,
     patchData: Partial<{
-      projectId: number;
+      projectUid: string;
+      listUid: string;
       name: string;
       description: string;
       priority: string;
@@ -96,36 +140,30 @@ class TaskService {
     }>
   ) {
     // 1. Validate inputs
-    if (!uid || !taskId) throw new BadRequestError("Invalid IDs");
+    if (!uid || !taskUid) throw new BadRequestError("Invalid IDs");
 
     // 2. Fetch user
     const user = await UserService.getUserWithRoles(uid);
-    if (!user) throw new NotFoundError("User not found");
 
     // 3. Authorization check
     const roles = user.userRoles.map((ur) => ur.role.name);
+    const privileges = await RoleService.getPrivilegesFromRoles(roles);
+    const privilegeName = privileges.map((p) => p.name);
 
-    // const isOnlyStatusField = (obj: object) =>
-    //   Object.keys(obj).length === 1 && "status" in obj;
+    const isFullEditor = privilegeName.includes("update_task");
 
-    const isOnlyAllowedFields = (obj: object, allowedFields: string[]) => {
-      const keys = Object.keys(obj);
-
-      // Check if all keys are in the allowed fields
-      return keys.every((key) => allowedFields.includes(key));
-    };
-
-    // Define the allowed fields for employees
-    const allowedFields = ["status"];
-
-    if (roles.includes("Employee") && !roles.includes("Manager")) {
-      if (!isOnlyAllowedFields(patchData, allowedFields)) {
+    if (!isFullEditor) {
+      const allowedFields = ["status"];
+      const invalidFields = Object.keys(patchData).filter(
+        (key) => !allowedFields.includes(key)
+      );
+      if (invalidFields.length > 0) {
         throw new ForbiddenError("Only 'status' update is allowed");
       }
     }
 
     // 4. Business logic & DB update
-    const updated = await TaskRepository.patchTask(taskId, patchData);
+    const updated = await TaskRepository.patchTask(taskUid, patchData);
 
     // 5. Return
     return updated;
@@ -142,22 +180,19 @@ class TaskService {
     return TaskRepository.findByUser(userId);
   }
 
-  async deleteTask(taskId: number, currentUser: User) {
-    const project = await TaskRepository.findById(taskId);
-    if (!project) {
-      throw new NotFoundError("Project not found");
+  async deleteTask(taskUid: string, currentUser: User) {
+    const task = await TaskRepository.findByUid(taskUid);
+    if (!task) {
+      throw new NotFoundError("Task not found");
     }
 
     //  Ownership check
     // Fetch the user with roles from the repository
     const user = await UserService.getUserWithRoles(currentUser.uid);
 
-    if (!user) {
-      throw new NotFoundError("User not found");
-    }
     const roles = user.userRoles.map((ur) => ur.role.name);
 
-    const managerObj = await TaskRepository.findManagerId(taskId);
+    const managerObj = await TaskRepository.findManagerId(taskUid);
 
     const managerId = managerObj?.project?.managerId;
 
@@ -166,7 +201,7 @@ class TaskService {
       throw new ForbiddenError("Not allowed to delete Task");
     }
 
-    return await TaskRepository.deleteTask(taskId);
+    return await TaskRepository.deleteTask(taskUid);
   }
 }
 

@@ -24,8 +24,8 @@ export class PatchTaskRequest {
   estimatedHours?: number;
 
   @Example(3)
-  assignedToId?: number;
+  assignedToUid?: string;
 
   @Example(1)
-  projectId?: number;
+  projectUid?: string;
 }

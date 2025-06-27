@@ -12,7 +12,6 @@ import {
   Put,
   Query,
   Request,
-  // Request,
   Response,
   Route,
   Security,
@@ -20,7 +19,9 @@ import {
   Tags,
 } from "tsoa";
 import { Request as ExRequest, Response as ExResponse } from "express";
-import BaseController from "./contract/baseController.contract";
+import BaseController, {
+  ApiResponse,
+} from "./contract/baseController.contract";
 import { ValidationErrorResponse } from "../dto/Error/ValidationErrorResponse.dto";
 import { validate_schemas } from "../middlewares/validationMiddleware";
 import {
@@ -33,11 +34,13 @@ import { UnauthorizedErrorResponse } from "../dto/Error/UnauthorizedErrorRespons
 import { ForbiddenErrorResponse } from "../dto/Error/ForbiddenErrorResponse.dto";
 import { checkPrivilege } from "@app/middlewares/checkPrivilege";
 import { DeleteProjectResponse } from "../dto/project/DeleteProjectResponse.dto";
-import ProjectService from "@app/service/project/project.service";
+
 import { ProjectRequest } from "../dto/project/ProjectRequest.dto";
 import { ProjectResponse } from "../dto/project/ProjectResponse.dto";
-import { NotFoundError } from "@app/service/contract/errors/errors";
 import { NotFoundErrorResponse } from "../dto/Error/NotFoundErrorResponse.dto";
+import { convertUndefinedToNull } from "../libs/normalize/normalize.utils";
+import { ProjectDTO } from "../dto/project/project.dto";
+import { ProjectService } from "../service/project/project.service";
 
 // Controller
 @Security("jwt")
@@ -57,28 +60,24 @@ export class ProjectController extends BaseController {
   async create(
     @Request() req: ExRequest,
     @Body() body: ProjectRequest
-  ): Promise<ProjectResponse> {
-    const managerId = req.user.id; // Assuming the JWT includes the user ID
+  ): Promise<ApiResponse<ProjectResponse>> {
+    const currentUserUid = req.user.uid;
+
     console.log("Req body: ", req.body);
+    console.log("From Controller");
 
-    // Add the managerId to the project data
-    const projectData = {
+    //converting underfined to Null
+    // const cleaned = convertUndefinedToNull(projectData);
+    const projectData = convertUndefinedToNull({
       ...body,
-      managerId, // Automatically assign managerId from logged-in user
-      deadline: body.deadline ? new Date(body.deadline) : undefined, // Convert string to Date
-    };
-    const project = await ProjectService.create(projectData);
+      deadline: body.deadline ? new Date(body.deadline) : undefined,
+    });
 
-    const serializedProject = {
-      ...project,
-      deadline: project.deadline?.toISOString() ?? null,
-      createdAt: project.createdAt.toISOString(),
-      updatedAt: project.updatedAt.toISOString(),
-    };
+    const project = await ProjectService.create(currentUserUid, projectData);
 
     return super.postOk({
       message: "Project Created Successfully",
-      data: serializedProject,
+      data: ProjectDTO.single(project),
     });
   }
 
@@ -97,7 +96,7 @@ export class ProjectController extends BaseController {
 
     return Object.assign(
       super.getOk({
-        message: "Projects fetched successfully",
+        message: total ? "Projects fetched successfully" : "No Project found",
         data: projects,
       }),
       { total }
@@ -109,20 +108,16 @@ export class ProjectController extends BaseController {
     validate_schemas(getProjectValidationSchema, "params"),
     checkPrivilege("read_project"),
   ])
-  @Get("{projectId}")
+  @Get("{projectUid}")
   public async getById(
     // @Request() req: ExRequest,
-    @Path() projectId: number
-  ): Promise<ProjectResponse> {
-    const project = await ProjectService.getById(projectId);
-
-    if (!project) {
-      throw new NotFoundError("Project not found");
-    }
+    @Path() projectUid: string
+  ): Promise<ApiResponse<ProjectResponse>> {
+    const project = await ProjectService.getByUid(projectUid);
 
     return super.getOk({
       message: "Project Retrieved Successfully",
-      data: this.serializeProject(project),
+      data: ProjectDTO.single(project),
     });
   }
 
@@ -132,36 +127,65 @@ export class ProjectController extends BaseController {
     validate_schemas(getProjectValidationSchema, "params"),
     checkPrivilege("update_project"),
   ])
-  @Put("{projectId}")
+  @Put("{projectUid}")
   public async update(
     @Request() req: ExRequest,
     // req: Request,
-    @Path() projectId: number,
+    @Path() projectUid: string,
     @Body() body: ProjectRequest
-  ): Promise<ProjectResponse> {
-    const updateData = {
+  ): Promise<ApiResponse<ProjectResponse>> {
+    const currentUserUid = req.user.uid;
+    // const updateData = {
+    //   ...body,
+    //   deadline: body.deadline ? new Date(body.deadline) : undefined,
+    // };
+
+    const updateData = convertUndefinedToNull({
       ...body,
       deadline: body.deadline ? new Date(body.deadline) : undefined,
-    };
+    });
 
     const updatedProject = await ProjectService.updateProject(
-      projectId,
+      currentUserUid,
+      projectUid,
       updateData
     );
 
     return super.putOk({
       message: "Project Updated Successfully",
-      data: this.serializeProject(updatedProject),
+      data: ProjectDTO.single(updatedProject),
     });
   }
 
-  private serializeProject(project: any) {
-    return {
-      ...project,
-      deadline: project.deadline?.toISOString() ?? null,
-      createdAt: project.createdAt.toISOString(),
-      updatedAt: project.updatedAt.toISOString(),
+  @SuccessResponse("200", "Project Updated Successfully")
+  @Middlewares([
+    validate_schemas(updateProjectValidationSchema, "body"),
+    validate_schemas(getProjectValidationSchema, "params"),
+    checkPrivilege("update_project"),
+  ])
+  @Patch("{projectUid}")
+  public async patch(
+    @Request() req: ExRequest,
+    // req: Request,
+    @Path() projectUid: string,
+    @Body() body: Partial<ProjectRequest>
+  ): Promise<ApiResponse<ProjectResponse>> {
+    const currentUserUid = req.user.uid;
+    const updateData = {
+      ...body,
+      deadline: body.deadline ? new Date(body.deadline) : undefined,
     };
+
+    const updatedProject = await ProjectService.PatchProject(
+      currentUserUid,
+      projectUid,
+      updateData
+    );
+
+    return super.patchOk({
+      message: "Project Updated Successfully",
+      data: ProjectDTO.single(updatedProject),
+    });
   }
 
   @SuccessResponse("200", "Project Deleted Successfully")
@@ -170,13 +194,13 @@ export class ProjectController extends BaseController {
     validate_schemas(deleteProjectValidationSchema, "params"),
     checkPrivilege("delete_project"),
   ])
-  @Delete("{projectId}")
+  @Delete("{projectUid}")
   public async delete(
-    @Request() request: ExRequest,
-    @Path() projectId: number
+    @Request() req: ExRequest,
+    @Path() projectUid: string
   ): Promise<DeleteProjectResponse> {
     // const userId = request.user.id; // Verify user is authenticated
-    await ProjectService.deleteProject(projectId, request.user);
+    await ProjectService.deleteProject(projectUid, req.user);
     return super.deleteOk({
       message: "Project Deleted Successfully",
       data: {},

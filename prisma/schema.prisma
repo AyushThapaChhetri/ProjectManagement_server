@@ -7,17 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-
-// CREATE TABLE "User" (
-//     "id" SERIAL PRIMARY KEY,
-//     "uid" UUID DEFAULT gen_random_uuid() NOT NULL,
-//     "fullName" TEXT NOT NULL,
-//     "email" TEXT UNIQUE NOT NULL,
-//     "password" TEXT NOT NULL,
-//     "gender" TEXT NOT NULL,
-//     "dob" TIMESTAMP NOT NULL,
-//     "createdAt" TIMESTAMP DEFAULT NOW() NOT NULL
+// CREATE TABLE "User"(
+//   id SERIAL PRIMARY KEY,
+//   uid UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
+//   firstName TEXT NOT NULL,
+//   lastName  TEXT NOT NULL,
+//   email TEXT UNIQUE NOT NULL,
+//   password TEXT NOT NULL,
+//   gender TEXT NOT NULL,
+//   dob TIMESTAMP NOT NULL,
+//   address TEXT,
+//   phone TEXT,
+//   title TEXT,
+//   avatarUrl TEXT,
+//   createdAt TIMESTAMP DEFAULT NOW() NOT NULL
 // );
 
 model User {
@@ -36,17 +39,26 @@ model User {
   createdAt DateTime @default(now())
   refreshTokens RefreshToken[]
   userRoles UserRole[]        //Link to roles
-  projects  Project[]        
-  tasks Task[]
+
+  //Relations for entities created by user
+  createdProjects  Project[] @relation("ProjectCreator")         
+  createdLists List[] @relation("ListCreator")
+  createdTasks Task[] @relation("TaskCreator")
+
+  //Entities managed or assigned to the user
+  assignedProjects Project[] @relation("ManagedProjects")
+  assignedTasks Task[] @relation("TaskAssignedTo")
+  activityLogs ActivityLog[]
 }
 
 
 // CREATE TABLE "RefreshToken"(
-//   rid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+//   rid  UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
 //   userId INTEGER NOT NULL REFRENCES "User"(id) ON DELETE CASCADE,
-//   token TEXT NOT NULL UNIQUE,
+//   token TEXT UNIQUE NOT NULL,
 //   expiresAt TIMESTAMP NOT NULL,
-//   createdAt TIMESTAMP NOT NULL DEFAULT now()
+//   createdAt TIMESTAMP NOT NULL DEFAULT NOW()
+
 // );
 
 model RefreshToken{
@@ -58,9 +70,10 @@ model RefreshToken{
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// CREATE TABLE "ROLE"(
-//  id SERIAL PRIMARYKEY,
-//  name TEXT UNIQUE NOT NULL,
+// CREATE TABLE "Role"(
+//   id SERIAL PRIMARY KEY,
+//   uid UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
+//   name TEXT UNIQUE NOT NULL,
 // );
 
 model Role{
@@ -73,10 +86,10 @@ model Role{
 
 // CREATE TABLE "Privilege"(
 //   id SERIAL PRIMARY KEY,
-//   name TEXT UNIQUE,
-//   description TEXT,
+//   uid UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
+//   name TEXT  UNIQUE NOT NULL,
+//   description TEXT
 // );
-
 model Privilege{
   id Int @id @default(autoincrement())
   uid String @default(uuid()) @unique
@@ -86,11 +99,12 @@ model Privilege{
 
 }
 
-// CREATE TABLE "UserRole"(
-//   userId INTEGER NOT NULL REFRENCES "User"(id) ON DELETE CASCADE,
-//   roleId INTEGER NOT NULL REFRENCES "Role"(id) ON DELETE CASCADE,
-//   PRIMARY KEY (userId,roleId)
-// );
+// CREATE TABLE "UserRole"{
+//     userId INTEGER NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
+//     roleId INTEGER NOT NULL REFERENCES "Role"(id) ON DELETE CASCADE,
+//     PRIMARY KEY (userId,roleId)
+
+// };
 
 model UserRole{
   userId Int
@@ -100,8 +114,7 @@ model UserRole{
   @@id([userId,roleId])
 }
 
-// -- Updated SQL comment for clarity
-// CREATE TABLE "RolePrivilege" (
+// CREATE TABLE "RolePrivilege"(
 //   roleId INTEGER NOT NULL REFERENCES "Role"(id) ON DELETE CASCADE,
 //   privilegeId INTEGER NOT NULL REFERENCES "Privilege"(id) ON DELETE CASCADE,
 //   PRIMARY KEY (roleId, privilegeId)
@@ -117,12 +130,14 @@ model RolePrivilege{
 
 
 // CREATE TABLE "Poject"(
-//   id SERIAL PRIMARY KEY,
-//   name TEXT NOT NULL,
-//   description TEXT,
-//   deadline TIMESTAMP,
-//   managerId INTEGER NOT NULL REFRENCES "User"(id) ON DELETE CASCADE,
-//   createdAt TIMESTAMP NOT NULL DEFAULT now()
+// id SERIAL PRIMARY KEY,
+// uid UUID DEFAULT gen_random_uuid UNIQUE NOT NULL,
+// name TEXT NOT NULL,
+// description TEXT,
+// managerId INTEGER NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
+// createdById INTEGER NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
+// createdAt TIMESTAMP DEFAULT NOW() NOT NULL,
+// updatedAt TIMESTAMP DEFAULT NOW() NOT NULL
 // );
 
 model Project{
@@ -132,45 +147,59 @@ model Project{
   description String?
   deadline DateTime?
   managerId Int?
-  manager User? @relation(fields: [managerId],references:[id],onDelete: SetNull)
+  manager User? @relation("ManagedProjects",fields: [managerId],references:[id],onDelete: SetNull)
+  //To track who created the project
+  createdById Int?
+  createdBy User? @relation("ProjectCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  tasks Task[]
+  lists List[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// CREATE TABLE "List" (
+//     id SERIAL PRIMARY KEY,
+//     uid UUID DEFAULT uuid_generate_v4() UNIQUE NOT NULL,
+//     name TEXT NOT NULL,
+//     projectId INTEGER NOT NULL REFERENCES "Project"(id) ON DELETE CASCADE,
+//     createdById INTEGER REFERENCES "User"(id) ON DELETE SET NULL,
+//     createdAt TIMESTAMP DEFAULT NOW() NOT NULL,
+//     updatedAt TIMESTAMP DEFAULT NOW() NOT NULL
+// );
+
+model List{
+  id Int @id @default(autoincrement())
+  uid String @default(uuid()) @unique
+  name String
+  projectId Int
+  project Project @relation(fields: [projectId],references: [id],onDelete: Cascade)
+  //Tracks who created list
+  createdById Int?
+  createdBy User? @relation("ListCreator", fields: [createdById],references: [id], onDelete: SetNull)
   tasks Task[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-// CREATE TABLE "Todo" (
-//     "id" BIGSERIAL PRIMARY KEY,
-//     "projectName" TEXT NOT NULL,
-//     "taskName" TEXT NOT NULL,
-//     "priority" TEXT NOT NULL,
-//     "progressStatus" TEXT NOT NULL,
-//     "startDate" TEXT DEFAULT '',
-//     "endDate" TEXT DEFAULT '',
-//     "hoursTime" TEXT DEFAULT '0',
-//     "minutesTime" TEXT DEFAULT '0',
-//     "secondsTime" TEXT DEFAULT '0',
-//     "userId" INTEGER NOT NULL,
-//     "createdAt" TIMESTAMP DEFAULT NOW() NOT NULL,
-//     CONSTRAINT fk_todo_user FOREIGN KEY ("userId") 
-//         REFERENCES "User"("id") ON DELETE CASCADE
-// );
 
 
 
-
-// CREATE TABLE "Task"(
-//   id SERIAL PRIMARY KEY,
-//   projectId INTEGER NOT NULL REFERNCES "Project"(id),
-//   name TEXT NOT NULL,
-//   description TEXT,
-//   priority TEXT NOT NULL,
-//   status STRING NOT NULL,
-//   startDate TIMESTAMP,
-//   endDate TIMESTAMP,
-//   estimatedHours REAL,
-//   assignedToId INT REFERENCES "User"(id),
-//   createdAt TIMESTAMP NOT NULL DEFAULT now(),
-//   updatedAt TIMESTAMP NOT NULL DEFAULT now()
+// CREATE TABLE "Task" (
+//     id SERIAL PRIMARY KEY,
+//     uid UUID DEFAULT uuid_generate_v4() UNIQUE NOT NULL,
+//     projectId INTEGER NOT NULL REFERENCES "Project"(id) ON DELETE CASCADE,
+//     listId INTEGER NOT NULL REFERENCES "List"(id) ON DELETE CASCADE,
+//     name TEXT NOT NULL,
+//     description TEXT,
+//     priority TEXT NOT NULL,
+//     status TEXT NOT NULL,
+//     startDate TIMESTAMP,
+//     endDate TIMESTAMP,
+//     estimatedHours REAL,
+//     assignedToId INTEGER REFERENCES "User"(id) ON DELETE SET NULL,
+//     createdById INTEGER REFERENCES "User"(id) ON DELETE SET NULL,
+//     createdAt TIMESTAMP DEFAULT NOW() NOT NULL,
+//     updatedAt TIMESTAMP DEFAULT NOW() NOT NULL
 // );
 
 
@@ -181,6 +210,9 @@ model Task {
 
   projectId      Int
   project        Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  listId         Int
+  list           List @relation(fields: [listId], references: [id],onDelete: Cascade)
   name           String
   description    String?
   priority       String
@@ -189,7 +221,50 @@ model Task {
   endDate        DateTime?
   estimatedHours Float?
   assignedToId   Int?
-  assignedTo     User? @relation(fields:[assignedToId],references:[id], onDelete: SetNull)
+  assignedTo     User? @relation("TaskAssignedTo",fields:[assignedToId],references:[id], onDelete: SetNull)
+
+  //To Track who created task
+  createdById Int?
+  createdBy User? @relation("TaskCreator", fields: [createdById],references: [id], onDelete: SetNull)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
+
+
+// CREATE TABLE "ActivityLog" (
+//     id SERIAL PRIMARY KEY,
+//     uid TEXT NOT NULL,
+//     action TEXT NOT NULL,
+//     entityType TEXT,
+//     entityId INTEGER,
+//     userId INTEGER REFERENCES "User"(id) ON DELETE CASCADE,
+//     timestamp TIMESTAMP DEFAULT NOW() NOT NULL,
+//     details JSONB
+// );
+
+//ActivityLog model: Tracks actions (create/update/delete) across entities
+model ActivityLog{
+
+  id Int @id @default(autoincrement())
+  uid String
+  action String
+  entityType String
+  entityId Int
+  userId Int?
+  user User? @relation(fields: [userId],references: [id],onDelete: SetNull)
+  timestamp DateTime @default(now())
+  details Json?
+
+}
+
+// data: {
+//     action: "update",
+//     entityType: "Project",
+//     entityId: 12,
+//     userId: 4,
+//     details: {
+//       fieldChanged: "deadline",
+//       oldValue: "2025-06-30T12:00:00Z",
+//       newValue: "2025-07-15T12:00:00Z"
+//     }
+//   }

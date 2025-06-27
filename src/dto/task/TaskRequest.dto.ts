@@ -34,9 +34,15 @@ export class TaskRequest {
   @Example(12.5)
   estimatedHours?: number;
 
-  @Example(3)
-  assignedToId?: number;
+  @Example("c289f43e-89de-42ef-8e1a-35a222d1ac12")
+  assignedToUid?: string;
 
-  @Example(1)
-  projectId!: number;
+  @Example("c289f43e-89de-42ef-8e1a-35a222d1ac12")
+  createdByUid?: string;
+
+  @Example("c289f43e-89de-42ef-8e1a-35a222d1ac12")
+  projectUid!: string;
+
+  @Example("c289f43e-89de-42ef-8e1a-35a222d1ac12")
+  listUid!: string;
 }

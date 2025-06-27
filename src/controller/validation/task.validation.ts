@@ -1,94 +1,107 @@
 import { TaskPriority, TaskStatus } from "../../dto/task/TaskRequest.dto";
 import * as Yup from "yup";
+import BaseYup from "../contract/baseValidator.contract";
 
-export const TaskValidationSchema = Yup.object({
-  projectId: Yup.number().required("Project ID is required"),
+export const TaskValidationSchema = BaseYup.object({
+  projectUid: BaseYup.string().required("Project UUID is required"),
 
-  name: Yup.string()
+  listUid: BaseYup.string().required("List UUID is required"),
+
+  name: BaseYup.string()
     .required("Task name is required")
     .min(3, "Name must be at least 3 characters"),
 
-  description: Yup.string().nullable(),
+  description: BaseYup.string().nullable().optional(),
 
-  priority: Yup.mixed<TaskPriority>()
+  priority: BaseYup.mixed<TaskPriority>()
     .oneOf(Object.values(TaskPriority), "Priority must be low, medium, or high")
     .required(),
 
-  status: Yup.mixed<TaskStatus>()
+  status: BaseYup.mixed<TaskStatus>()
     .oneOf(Object.values(TaskStatus), "Invalid status")
     .required(),
 
-  startDate: Yup.date().nullable().typeError("Start Date must be a valid date"),
+  startDate: BaseYup.isoDateString("Start date"),
 
-  endDate: Yup.date()
-    .nullable()
-    .min(Yup.ref("startDate"), "End date can't be before start date")
-    .typeError("End Date must be a valid date"),
+  endDate: BaseYup.isoDateString("End date").test(
+    "is-after-start",
+    "End date can’t be before start date",
+    function (value) {
+      const { startDate } = this.parent;
+      if (!startDate || !value) return true;
+      return new Date(value) >= new Date(startDate);
+    }
+  ),
 
-  estimatedHours: Yup.number()
+  estimatedHours: BaseYup.number()
     .nullable()
     .positive("Estimated hours must be a positive number")
-    .typeError("Estimated hours must be a number"),
+    .typeError("Estimated hours must be a number")
+    .optional(),
 
-  assignedToId: Yup.number()
+  assignedToUid: BaseYup.string()
     .nullable()
-    .typeError("AssignedToId must be a number"),
+    .typeError("AssignedToUid must be a string")
+    .optional(),
 });
 
-// get Project by Id
+// get Task by Id
 export const getTaskValidationSchema = Yup.object({
-  taskId: Yup.number().required().positive().integer(),
+  taskUid: BaseYup.string().required(),
 });
 
-// Validation Schema for Delete Project
+// Validation Schema for Delete Task
 export const deleteTaskValidationSchema = Yup.object({
-  projectId: Yup.number().required().positive().integer(),
+  taskUid: BaseYup.string().required(),
 });
 
-export const updateTaskValidationSchema = Yup.object({
-  projectId: Yup.number().optional().typeError("projectId must be a number"),
+export const updateTaskValidationSchema = BaseYup.object({
+  projectUid: BaseYup.string()
+    .typeError("Project UID must be a string")
+    .optional(),
 
-  name: Yup.string().min(3, "Name must be at least 3 characters").optional(),
+  listUid: BaseYup.string().typeError("List UID must be a string").optional(),
 
-  description: Yup.string().nullable().optional(),
+  name: BaseYup.string()
+    .min(3, "Name must be at least 3 characters")
+    .optional(),
 
-  priority: Yup.mixed<TaskPriority>()
+  description: BaseYup.string().nullable().optional(),
+
+  priority: BaseYup.mixed<TaskPriority>()
     .oneOf(
       Object.values(TaskPriority),
       `Priority must be one of: ${Object.values(TaskPriority).join(", ")}`
     )
     .optional(),
 
-  status: Yup.mixed<TaskStatus>()
+  status: BaseYup.mixed<TaskStatus>()
     .oneOf(
       Object.values(TaskStatus),
       `Status must be one of: ${Object.values(TaskStatus).join(", ")}`
     )
     .optional(),
 
-  startDate: Yup.date()
+  startDate: BaseYup.isoDateString("Start date"),
+
+  endDate: BaseYup.isoDateString("End date").test(
+    "is-after-start",
+    "End date can’t be before start date",
+    function (value) {
+      const { startDate } = this.parent;
+      if (!startDate || !value) return true;
+      return new Date(value) >= new Date(startDate);
+    }
+  ),
+
+  estimatedHours: BaseYup.number()
     .nullable()
-    .typeError("startDate must be a valid date")
+    .positive("Estimated hours must be a positive number")
+    .typeError("Estimated hours must be a number")
     .optional(),
 
-  endDate: Yup.date()
+  assignedToUid: BaseYup.string()
     .nullable()
-    .typeError("endDate must be a valid date")
-    .when("startDate", (startDate, schema) => {
-      return startDate
-        ? schema.min(startDate, "endDate can’t be before startDate")
-        : schema;
-    })
-    .optional(),
-
-  estimatedHours: Yup.number()
-    .nullable()
-    .positive("estimatedHours must be a positive number")
-    .typeError("estimatedHours must be a number")
-    .optional(),
-
-  assignedToId: Yup.number()
-    .nullable()
-    .typeError("assignedToId must be a number")
+    .typeError("AssignedToUid must be a string")
     .optional(),
 });

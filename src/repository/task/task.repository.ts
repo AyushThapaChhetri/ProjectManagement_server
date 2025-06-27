@@ -4,6 +4,7 @@ import BaseRepository from "../contract/baseRepository";
 class TaskRepository extends BaseRepository {
   async create(data: {
     projectId: number;
+    listId: number;
     name: string;
     description?: string;
     priority: string;
@@ -12,10 +13,16 @@ class TaskRepository extends BaseRepository {
     endDate?: Date;
     estimatedHours?: number;
     assignedToId?: number;
+    createdById?: number;
   }) {
     return super.dbCatch(prisma.task.create({ data }));
   }
 
+  async findProjectByUid(projectUid: string) {
+    return await prisma.project.findUnique({
+      where: { uid: projectUid },
+    });
+  }
   async findAllPaginated(page: number, limit: number) {
     const [total, tasks] = await Promise.all([
       prisma.task.count(),
@@ -28,10 +35,10 @@ class TaskRepository extends BaseRepository {
     return { tasks, total };
   }
 
-  async findManagerId(taskId: number) {
+  async findManagerId(taskUid: string) {
     return await super.dbCatch(
       prisma.task.findUnique({
-        where: { id: taskId },
+        where: { uid: taskUid },
         select: {
           project: {
             select: {
@@ -52,6 +59,13 @@ class TaskRepository extends BaseRepository {
       })
     );
   }
+  async findByUid(taskUid: string) {
+    return super.dbCatch(
+      prisma.task.findUnique({
+        where: { uid: taskUid },
+      })
+    );
+  }
 
   async findByUser(userId: number) {
     return super.dbCatch(
@@ -60,9 +74,10 @@ class TaskRepository extends BaseRepository {
   }
 
   async updateTask(
-    taskId: number,
+    taskUid: string,
     data: {
       projectId: number;
+      listId: number;
       name: string;
       description?: string;
       priority: string;
@@ -81,7 +96,7 @@ class TaskRepository extends BaseRepository {
 
     return super.dbCatch(
       prisma.task.update({
-        where: { id: taskId },
+        where: { uid: taskUid },
         data: {
           ...data,
           updatedAt: new Date(),
@@ -91,7 +106,7 @@ class TaskRepository extends BaseRepository {
   }
 
   async patchTask(
-    taskId: number,
+    taskUid: string,
     patchData: Partial<{
       projectId: number;
       name: string;
@@ -106,7 +121,7 @@ class TaskRepository extends BaseRepository {
   ) {
     return super.dbCatch(
       prisma.task.update({
-        where: { id: taskId },
+        where: { uid: taskUid },
         data: {
           ...patchData,
           updatedAt: new Date(),
@@ -115,9 +130,9 @@ class TaskRepository extends BaseRepository {
     );
   }
 
-  async deleteTask(taskId: number) {
+  async deleteTask(taskUid: string) {
     await prisma.task.delete({
-      where: { id: taskId },
+      where: { uid: taskUid },
     });
   }
 }

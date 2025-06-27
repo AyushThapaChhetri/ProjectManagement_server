@@ -25,7 +25,6 @@ import {
 } from "tsoa";
 import { ValidationErrorResponse } from "../dto/Error/ValidationErrorResponse.dto";
 import { BadRequestErrorResponse } from "../dto/Error/BadRequestErrorResponse.dto";
-import UserService from "../service/user/user.service";
 import { SignupRequest } from "../dto/user/SignupRequest.dto";
 import { UserResponse, UserResponseData } from "../dto/user/UserResponse.dto";
 import { ErrorResponse } from "../dto/Error/ErrorResponse.dto";
@@ -43,6 +42,7 @@ import { UserListResponse } from "../dto/user/UserListResponse.dto";
 import { RoleUpdateRequest } from "../dto/user/RoleRequest.dto";
 import { UnauthorizedErrorResponse } from "../dto/Error/UnauthorizedErrorResponse.dto";
 import { DeleteUsersRequest } from "../dto/user/UserDeleteManyRequest.dto";
+import { UserService } from "@app/service/user/user.service";
 
 // @Response<ValidationErrorResponse>(422, "Validation failed")
 // @Response<BadRequestErrorResponse>(400, "BadRequestError")
@@ -134,7 +134,7 @@ export class _UserController extends BaseController {
   @Response<ErrorResponse>(404, "User not found")
   @Get("{uid}")
   @Middlewares([authorize()]) // Allows self-access
-  async getUserById(@Path() uid: string): Promise<UserResponse> {
+  async getUserByUid(@Path() uid: string): Promise<UserResponse> {
     const user = await UserService.getByIdWithRoles(uid);
 
     return super.getOk({

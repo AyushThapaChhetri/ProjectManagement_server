@@ -21,7 +21,6 @@ import BaseController from "./contract/baseController.contract";
 import TaskService from "../service/task/task.service";
 import { TaskRequest } from "../dto/task/TaskRequest.dto";
 import TaskDTO from "../dto/task/task.dto";
-import { TaskResponseData } from "../dto/task/TaskResponse.dto";
 import { ValidationErrorResponse } from "../dto/Error/ValidationErrorResponse.dto";
 import { UnauthorizedErrorResponse } from "../dto/Error/UnauthorizedErrorResponse.dto";
 import { ForbiddenErrorResponse } from "../dto/Error/ForbiddenErrorResponse.dto";
@@ -64,8 +63,10 @@ export class TaskController extends BaseController {
       startDate: body.startDate ? new Date(body.startDate) : undefined,
       endDate: body.endDate ? new Date(body.endDate) : undefined,
     };
+    const currentUserUid = req.user.uid;
+    console.log("Current user from controller: ", req.user.uid);
 
-    const task = await TaskService.create(taskData);
+    const task = await TaskService.create(currentUserUid, taskData);
 
     return super.postOk({
       message: "Task Created Successfully",
@@ -85,7 +86,7 @@ export class TaskController extends BaseController {
 
     return Object.assign(
       super.getOk({
-        message: "Tasks fetched successfully",
+        message: total ? "Tasks fetched successfully" : "No Task found",
         data: tasks,
       }),
       { total }
@@ -97,16 +98,12 @@ export class TaskController extends BaseController {
     validate_schemas(getTaskValidationSchema, "params"),
     authorize("read_task"),
   ])
-  @Get("{taskId}")
-  public async getById(
+  @Get("{taskUid}")
+  public async getByUid(
     // @Request() req: ExRequest,
-    @Path() taskId: number
+    @Path() taskUid: string
   ) {
-    const task = await TaskService.getById(taskId);
-
-    if (!task) {
-      throw new NotFoundError("Task not found");
-    }
+    const task = await TaskService.getByUid(taskUid);
 
     return super.getOk({
       message: "Task Retrieved Successfully",
@@ -120,11 +117,11 @@ export class TaskController extends BaseController {
     validate_schemas(getTaskValidationSchema, "params"),
     authorize("update_task"),
   ])
-  @Put("{taskId}")
+  @Put("{taskUid}")
   public async update(
     @Request() req: ExRequest,
     // req: Request,
-    @Path() taskId: number,
+    @Path() taskUid: string,
     @Body() body: TaskRequest
   ) {
     const updateData = {
@@ -133,7 +130,7 @@ export class TaskController extends BaseController {
       endDate: body.endDate ? new Date(body.endDate) : undefined,
     };
 
-    const updatedTask = await TaskService.updateTask(taskId, updateData);
+    const updatedTask = await TaskService.updateTask(taskUid, updateData);
 
     return super.putOk({
       message: "Task Updated Successfully",
@@ -156,11 +153,11 @@ export class TaskController extends BaseController {
     validate_schemas(getTaskValidationSchema, "params"),
     authorize("update_task_status"),
   ])
-  @Patch("{taskId}")
+  @Patch("{taskUid}")
   public async patch(
     @Request() req: ExRequest,
     // req: Request,
-    @Path() taskId: number,
+    @Path() taskUid: string,
     @Body() body: PatchTaskRequest
   ) {
     const user = req.user;
@@ -171,7 +168,7 @@ export class TaskController extends BaseController {
       endDate: body.endDate ? new Date(body.endDate) : undefined,
     };
 
-    const updatedTask = await TaskService.patch(user.uid, taskId, patchData);
+    const updatedTask = await TaskService.patch(user.uid, taskUid, patchData);
 
     return super.putOk({
       message: "Task Updated Successfully",
@@ -185,10 +182,10 @@ export class TaskController extends BaseController {
     validate_schemas(deleteTaskValidationSchema, "params"),
     authorize("delete_task"),
   ])
-  @Delete("{taskId}")
-  public async delete(@Request() request: ExRequest, @Path() taskId: number) {
+  @Delete("{taskUid}")
+  public async delete(@Request() request: ExRequest, @Path() taskUid: string) {
     // const userId = request.user.id; // Verify user is authenticated
-    await TaskService.deleteTask(taskId, request.user);
+    await TaskService.deleteTask(taskUid, request.user);
     return super.deleteOk({
       message: "Task Deleted Successfully",
       data: {},

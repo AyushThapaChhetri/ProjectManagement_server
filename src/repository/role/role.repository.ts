@@ -17,6 +17,19 @@ class RoleRepository extends BaseRepository {
       })
     );
   }
+
+  async findPrivilegesFromRoles(roles: string[]) {
+    return prisma.role.findMany({
+      where: { name: { in: roles } },
+      include: {
+        rolePrivileges: {
+          select: {
+            privilegeId: true,
+          },
+        },
+      },
+    });
+  }
 }
 
 export default new RoleRepository();

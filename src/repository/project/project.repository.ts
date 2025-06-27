@@ -3,23 +3,14 @@ import BaseRepository from "../contract/baseRepository";
 import { BadRequestError } from "@app/service/contract/errors/errors";
 
 class ProjectRepository extends BaseRepository {
-  async create(data: {
+  async create(params: {
     name: string;
-    description?: string;
-    deadline?: Date;
-    managerId: number;
+    description: string | null;
+    deadline: Date | null;
+    managerId: number | null;
+    createdById: number;
   }) {
-    return super.dbCatch(prisma.project.create({ data }));
-  }
-
-  // Add these methods to the existing repository
-
-  async findById(projectId: number) {
-    return super.dbCatch(
-      prisma.project.findUnique({
-        where: { id: projectId },
-      })
-    );
+    return super.dbCatch(prisma.project.create({ data: params }));
   }
 
   async findAllPaginated(page: number, limit: number) {
@@ -37,9 +28,10 @@ class ProjectRepository extends BaseRepository {
   async updateProject(
     projectId: number,
     data: {
-      name?: string;
-      description?: string;
-      deadline?: Date;
+      name: string;
+      description: string | null;
+      deadline: Date | null;
+      managerId: number | null;
     }
   ) {
     // prisma.$transaction(async (tx){
@@ -58,6 +50,31 @@ class ProjectRepository extends BaseRepository {
       })
     );
   }
+  async patchProject(
+    projectId: number,
+    data: Partial<{
+      name: string;
+      description: string | null;
+      deadline: Date | null;
+      managerUid: string | null;
+    }>
+  ) {
+    return super.dbCatch(
+      prisma.project.update({
+        where: { id: projectId },
+        data: {
+          ...data,
+          updatedAt: new Date(),
+        },
+      })
+    );
+  }
+
+  async deleteProject(projectUid: string) {
+    await prisma.project.delete({
+      where: { uid: projectUid },
+    });
+  }
 
   async findAllByManager(managerId: number) {
     return super.dbCatch(
@@ -68,10 +85,35 @@ class ProjectRepository extends BaseRepository {
       })
     );
   }
-  async deleteProject(projectId: number) {
-    await prisma.project.delete({
-      where: { id: projectId },
-    });
+
+  // Add these methods to the existing repository
+
+  async findById(projectId: number) {
+    return super.dbCatch(
+      prisma.project.findUnique({
+        where: { id: projectId },
+      })
+    );
+  }
+  async findByUid(projectUid: string) {
+    return super.dbCatch(
+      prisma.project.findUnique({
+        where: { uid: projectUid },
+      })
+    );
+  }
+
+  async findByName(name: string) {
+    return super.dbCatch(
+      prisma.project.findFirst({
+        where: {
+          name: {
+            equals: name,
+            mode: "insensitive",
+          },
+        },
+      })
+    );
   }
 }
 
