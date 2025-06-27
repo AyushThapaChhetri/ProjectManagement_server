@@ -573,10 +573,6 @@
 						"type": "string",
 						"example": "c289f43e-89de-42ef-8e1a-35a222d1ac12"
 					},
-					"createdByUid": {
-						"type": "string",
-						"example": "c289f43e-89de-42ef-8e1a-35a222d1ac12"
-					},
 					"projectUid": {
 						"type": "string",
 						"example": "c289f43e-89de-42ef-8e1a-35a222d1ac12"
@@ -649,11 +645,15 @@
 					},
 					"assignedToUid": {
 						"type": "string",
-						"example": 3
+						"example": "c289f43e-89de-42ef-8e1a-35a222d1ac12"
 					},
 					"projectUid": {
 						"type": "string",
-						"example": 1
+						"example": "c289f43e-89de-42ef-8e1a-35a222d1ac12"
+					},
+					"listUid": {
+						"type": "string",
+						"example": "c289f43e-89de-42ef-8e1a-35a222d1ac12"
 					}
 				},
 				"type": "object",

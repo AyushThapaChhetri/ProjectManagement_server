@@ -94,6 +94,17 @@ class UserRepository extends BaseRepository {
       where: { uid: uid },
     });
   }
+  async findByID(id: number) {
+    // const user = await prisma.user.findUnique({
+    //   where: { uid: uid },
+    // });
+    // if (!user) throw new NotFoundError("User not found");
+    // // console.log("Find by Id:", user);
+    // return user;
+    return await prisma.user.findUnique({
+      where: { id: id },
+    });
+  }
 
   async validateRoleUids(roleUids: string[]) {
     const count = await this.dbCatch(

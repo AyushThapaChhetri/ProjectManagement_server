@@ -134,6 +134,12 @@ class _UserService {
     console.log("Find by Id:", user);
     return user;
   }
+  async findById(id: number) {
+    const user = await UserRepository.findByID(id);
+    if (!user) throw new NotFoundError("User not found");
+    console.log("Find by Id:", user);
+    return user;
+  }
 
   async updateUserRoles(userUid: string, roleUids: string[]) {
     // 1) Ensure user exists

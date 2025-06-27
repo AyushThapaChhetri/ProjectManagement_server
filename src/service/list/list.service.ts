@@ -160,6 +160,11 @@ class _ListService {
     if (!list) throw new NotFoundError("List not found");
     return list;
   }
+  async getById(listId: number) {
+    const list = await ListRepository.findById(listId);
+    if (!list) throw new NotFoundError("List not found");
+    return list;
+  }
 }
 
 export const ListService = new _ListService();

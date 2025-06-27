@@ -120,7 +120,15 @@ class TaskService {
     }
 
     const taskData = { ...data, assignedToId };
-    return TaskRepository.updateTask(taskUid, taskData);
+    const task = TaskRepository.updateTask(taskUid, taskData);
+
+    const AddResponseTask = {
+      ...task,
+      projectUid: project.uid,
+      listUid: list.uid,
+      assignedToUid: project.managerId,
+    };
+    return AddResponseTask;
   }
 
   async patch(
@@ -136,11 +144,21 @@ class TaskService {
       startDate: Date;
       endDate: Date;
       estimatedHours: number;
+      assignedToUid: string;
       assignedToId: number;
     }>
   ) {
     // 1. Validate inputs
     if (!uid || !taskUid) throw new BadRequestError("Invalid IDs");
+
+    const { projectUid, listUid } = patchData;
+    const Task = await this.getByUid(taskUid);
+    if (projectUid) {
+      const project = await ProjectService.getByUid(projectUid);
+    }
+    if (listUid) {
+      const list = await ListService.getByUid(listUid);
+    }
 
     // 2. Fetch user
     const user = await UserService.getUserWithRoles(uid);
@@ -162,22 +180,32 @@ class TaskService {
       }
     }
 
+    // Handle assignedToUid -> assignedToId
+    if (patchData.assignedToUid) {
+      const assignedUser = await UserService.findByUid(patchData.assignedToUid);
+      patchData.assignedToId = assignedUser.id;
+      delete patchData.assignedToUid;
+    }
     // 4. Business logic & DB update
     const updated = await TaskRepository.patchTask(taskUid, patchData);
 
-    // 5. Return
-    return updated;
-  }
+    const project = await ProjectService.getById(updated.projectId);
 
-  async findByUser(userId: number) {
-    const userExists = await prisma.user.findUnique({
-      where: { id: userId },
-    });
+    const list = await ListService.getById(updated.listId);
 
-    if (!userExists) {
-      throw new NotFoundError(`User doesn't exist: ${userExists}`);
+    let assignedToUid: string | null = null;
+    if (updated.assignedToId) {
+      const assignedUser = await UserService.findById(updated.assignedToId);
+      assignedToUid = assignedUser.uid;
     }
-    return TaskRepository.findByUser(userId);
+
+    const AddResponseTask = {
+      ...updated,
+      projectUid: project.uid,
+      listUid: list.uid,
+      assignedToUid,
+    };
+    return AddResponseTask;
   }
 
   async deleteTask(taskUid: string, currentUser: User) {

@@ -65,6 +65,11 @@ class _ListRepository extends BaseRepository {
       where: { uid: listUid },
     });
   }
+  async findById(listId: number) {
+    return await prisma.list.findUnique({
+      where: { id: listId },
+    });
+  }
 }
 
 export const ListRepository = new _ListRepository();
