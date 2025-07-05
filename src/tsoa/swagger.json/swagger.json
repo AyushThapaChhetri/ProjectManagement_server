@@ -1982,6 +1982,81 @@
 				]
 			}
 		},
+		"/api/tasks/list/{listUid}": {
+			"delete": {
+				"operationId": "DeleteAllTask",
+				"responses": {
+					"200": {
+						"description": "Task Deleted Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse____"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Tasks"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "listUid",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
 		"/api/projects": {
 			"post": {
 				"operationId": "Create",

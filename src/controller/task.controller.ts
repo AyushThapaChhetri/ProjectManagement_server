@@ -26,6 +26,7 @@ import { UnauthorizedErrorResponse } from "../dto/Error/UnauthorizedErrorRespons
 import { ForbiddenErrorResponse } from "../dto/Error/ForbiddenErrorResponse.dto";
 import { validate_schemas } from "../middlewares/validationMiddleware";
 import {
+  deleteAllTaskValidationSchema,
   deleteTaskValidationSchema,
   getTaskValidationSchema,
   TaskValidationSchema,
@@ -87,7 +88,8 @@ export class TaskController extends BaseController {
     return Object.assign(
       super.getOk({
         message: total ? "Tasks fetched successfully" : "No Task found",
-        data: tasks,
+        // data: TaskDTO.single(tasks),
+        data: TaskDTO.list(tasks),
       }),
       { total }
     );
@@ -188,6 +190,24 @@ export class TaskController extends BaseController {
     await TaskService.deleteTask(taskUid, request.user);
     return super.deleteOk({
       message: "Task Deleted Successfully",
+      data: {},
+    });
+  }
+  @SuccessResponse("200", "Task Deleted Successfully")
+  // forbidden 403
+  @Middlewares([
+    validate_schemas(deleteAllTaskValidationSchema, "params"),
+    authorize("delete_task"),
+  ])
+  @Delete("list/{listUid}")
+  public async deleteAllTask(
+    @Request() request: ExRequest,
+    @Path() listUid: string
+  ) {
+    // const userId = request.user.id; // Verify user is authenticated
+    await TaskService.deleteAllTask(listUid, request.user);
+    return super.deleteOk({
+      message: "All Task Deleted Successfully",
       data: {},
     });
   }

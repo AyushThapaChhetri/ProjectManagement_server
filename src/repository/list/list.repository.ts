@@ -12,7 +12,7 @@ class _ListRepository extends BaseRepository {
       prisma.list.findMany({
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: "asc" },
         include: {
           createdBy: {
             select: {
@@ -40,6 +40,13 @@ class _ListRepository extends BaseRepository {
     return await prisma.list.update({
       where: { uid: listUid },
       data: { ...listData, updatedAt: new Date() },
+      include: {
+        createdBy: {
+          select: {
+            uid: true,
+          },
+        },
+      },
     });
   }
   async patch(
@@ -52,13 +59,24 @@ class _ListRepository extends BaseRepository {
     return await prisma.list.update({
       where: { uid: listUid },
       data: { ...listData, updatedAt: new Date() },
+      include: {
+        project: {
+          select: { uid: true },
+        },
+        createdBy: {
+          select: { uid: true },
+        },
+      },
     });
   }
 
-  async delete(listUid: string) {
-    return await prisma.list.delete({
-      where: { uid: listUid },
-    });
+  async delete(listId: number) {
+    super.dbCatch(
+      prisma.$transaction([
+        prisma.task.deleteMany({ where: { listId } }),
+        prisma.list.delete({ where: { id: listId } }),
+      ])
+    );
   }
   async findByUid(listUid: string) {
     return await prisma.list.findUnique({
@@ -69,6 +87,26 @@ class _ListRepository extends BaseRepository {
     return await prisma.list.findUnique({
       where: { id: listId },
     });
+  }
+  async findManagerByListUid(listUid: string) {
+    return super.dbCatch(
+      prisma.list.findUnique({
+        where: {
+          uid: listUid,
+        },
+        include: {
+          project: {
+            select: {
+              createdBy: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
+        },
+      })
+    );
   }
 }
 

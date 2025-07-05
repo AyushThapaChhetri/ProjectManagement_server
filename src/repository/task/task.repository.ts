@@ -29,7 +29,24 @@ class TaskRepository extends BaseRepository {
       prisma.task.findMany({
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: "asc" },
+        include: {
+          createdBy: {
+            select: {
+              uid: true,
+            },
+          },
+          list: {
+            select: {
+              uid: true,
+            },
+          },
+          project: {
+            select: {
+              uid: true,
+            },
+          },
+        },
       }),
     ]);
     return { tasks, total };
@@ -60,7 +77,7 @@ class TaskRepository extends BaseRepository {
     );
   }
   async findByUid(taskUid: string) {
-    return super.dbCatch(
+    return await super.dbCatch(
       prisma.task.findUnique({
         where: { uid: taskUid },
       })
@@ -134,6 +151,14 @@ class TaskRepository extends BaseRepository {
     await prisma.task.delete({
       where: { uid: taskUid },
     });
+  }
+
+  async deleteAllTask(listId: number) {
+    return await super.dbCatch(
+      prisma.task.deleteMany({
+        where: { listId },
+      })
+    );
   }
 }
 

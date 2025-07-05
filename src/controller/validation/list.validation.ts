@@ -24,5 +24,5 @@ export const updateListValidationSchema = BaseYup.object({
 
 // Validation Schema for Delete List
 export const deleteListValidationSchema = Yup.object({
-  projectUid: BaseYup.string().required(),
+  listUid: BaseYup.string().required(),
 });

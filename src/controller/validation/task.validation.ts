@@ -55,6 +55,10 @@ export const deleteTaskValidationSchema = Yup.object({
   taskUid: BaseYup.string().required(),
 });
 
+export const deleteAllTaskValidationSchema = Yup.object({
+  listUid: BaseYup.string().required(),
+});
+
 export const updateTaskValidationSchema = BaseYup.object({
   projectUid: BaseYup.string()
     .typeError("Project UID must be a string")

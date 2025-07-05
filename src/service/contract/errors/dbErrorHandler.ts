@@ -13,11 +13,13 @@ export class DBError {
   resolve(error: any) {
     const { code } = error;
     if (!code) return;
-    if (code == "P2002") {
-      return {
-        code: 400,
-        message: "Already exists",
-      };
+    switch (code) {
+      case "P2002":
+        return { code: 400, message: "Already exists" };
+      case "P2025":
+        return { code: 404, message: "Record not found" };
+      default:
+        return { code: 500, message: "Database error" };
     }
   }
 }

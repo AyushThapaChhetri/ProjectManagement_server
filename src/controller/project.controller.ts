@@ -139,7 +139,7 @@ export class ProjectController extends BaseController {
     //   ...body,
     //   deadline: body.deadline ? new Date(body.deadline) : undefined,
     // };
-
+    console.log("Projcect Contorller: ", projectUid);
     const updateData = convertUndefinedToNull({
       ...body,
       deadline: body.deadline ? new Date(body.deadline) : undefined,

@@ -19,7 +19,7 @@ class ProjectRepository extends BaseRepository {
       prisma.project.findMany({
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: "asc" },
       }),
     ]);
     return { projects, total };
@@ -70,10 +70,14 @@ class ProjectRepository extends BaseRepository {
     );
   }
 
-  async deleteProject(projectUid: string) {
-    await prisma.project.delete({
-      where: { uid: projectUid },
-    });
+  async deleteProject(projectId: number) {
+    return super.dbCatch(
+      prisma.$transaction([
+        prisma.task.deleteMany({ where: { projectId } }),
+        prisma.list.deleteMany({ where: { projectId } }),
+        prisma.project.delete({ where: { id: projectId } }),
+      ])
+    );
   }
 
   async findAllByManager(managerId: number) {

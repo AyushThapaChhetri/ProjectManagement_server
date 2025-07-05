@@ -19,7 +19,7 @@ class _ProjectService {
       managerUid: string | null;
     }
   ) {
-    const { name, managerUid } = params;
+    const { name, managerUid, description, deadline } = params;
 
     //  Check if project with the same name already exists
     const existingProject = await ProjectRepository.findByName(name);
@@ -27,29 +27,47 @@ class _ProjectService {
       throw new BadRequestError("Project with this name already exists.");
     }
 
-    // let managerToId: number | null = null;
-    // if (managerUid) {
-    //   const assignedProjectManager = await UserService.getUserWithRoles(managerUid);
-    //   managerToId = assignedProjectManager.id;
-    // }
-
-    const managerId = await this.resolveUserUidToIdWithRoles(
-      params.managerUid,
-      ["Super Admin", "Admin", "Project Manager"],
-      "Assigned user must be a Project Manager or higher."
-    );
-
+    // 2. Get current user info
     const currentUser = await UserService.getUserWithRoles(currentUserUid);
     const currentUserId = currentUser.id;
+    const currentRoles = currentUser.userRoles.map((r) => r.role.name);
+
+    const disallowedSelfAssign = ["Admin", "Super Admin"];
+
+    const isProjectManager = currentRoles.includes("Project Manager");
+
+    const hasDisallowedRole = currentRoles.some((role) =>
+      disallowedSelfAssign.includes(role)
+    );
+
+    // 3. Determine managerId
+    let managerId: number | null = null;
+
+    // const isOnlyProjectManager =
+    // currentRoles.length === 1 && currentRoles.includes("Project Manager");
+
+    if (isProjectManager && !hasDisallowedRole) {
+      // Use current user if they are a project manager but not admin/super admin
+      managerId = currentUserId;
+    } else {
+      // else resolve from provided managerUid (if given)
+      managerId = await this.resolveUserUidToIdWithRoles(
+        managerUid,
+        ["Super Admin", "Admin", "Project Manager"],
+        "Assigned user must be a Project Manager or higher."
+      );
+    }
+
     const projectData = {
-      name: params.name,
-      description: params.description,
-      deadline: params.deadline,
-      managerId: managerId,
+      name,
+      description,
+      deadline,
+      managerId,
       createdById: currentUserId,
     };
 
     const project = await ProjectRepository.create(projectData);
+
     const AddResponseProject = {
       ...project,
       managerUid,
@@ -193,11 +211,14 @@ class _ProjectService {
       throw new ForbiddenError("You are not allowed to delete this project");
     }
 
-    return await ProjectRepository.deleteProject(projectUid);
+    return await ProjectRepository.deleteProject(project.id);
   }
 
   async findAllByManager(managerId: number) {
-    return ProjectRepository.findAllByManager(managerId);
+    const project = await ProjectRepository.findAllByManager(managerId);
+    if (!project) throw new NotFoundError("Projects not Found");
+
+    return project;
   }
 
   async getById(projectId: number) {

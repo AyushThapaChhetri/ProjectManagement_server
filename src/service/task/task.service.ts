@@ -71,7 +71,10 @@ class TaskService {
   }
 
   async getAllPaginated(page: number, limit: number) {
-    return TaskRepository.findAllPaginated(page, limit);
+    const tasks = await TaskRepository.findAllPaginated(page, limit);
+    console.log("Task from the service", tasks);
+
+    return tasks;
   }
 
   async getByUid(taskUid: string) {
@@ -209,6 +212,7 @@ class TaskService {
   }
 
   async deleteTask(taskUid: string, currentUser: User) {
+    console.log("Taskuid: ", taskUid);
     const task = await TaskRepository.findByUid(taskUid);
     if (!task) {
       throw new NotFoundError("Task not found");
@@ -228,8 +232,32 @@ class TaskService {
     if (roles.includes("Project Manager") && currentUser.id !== managerId) {
       throw new ForbiddenError("Not allowed to delete Task");
     }
+    console.log("Before deletion Service layer", taskUid);
+    await TaskRepository.deleteTask(taskUid);
+  }
+  async deleteAllTask(listUid: string, currentUser: User) {
+    console.log("listuid: ", listUid);
+    const list = await ListService.getByUid(listUid);
+    if (!list) {
+      throw new NotFoundError("List not found");
+    }
 
-    return await TaskRepository.deleteTask(taskUid);
+    //  Ownership check
+    // Fetch the user with roles from the repository
+    const user = await UserService.getUserWithRoles(currentUser.uid);
+
+    const roles = user.userRoles.map((ur) => ur.role.name);
+
+    const managerObj = await ListService.getManagerByListUid(listUid);
+
+    const managerId = managerObj?.project?.createdBy?.id;
+
+    // If Project Manager, only allow delete if they own the project
+    if (roles.includes("Project Manager") && currentUser.id !== managerId) {
+      throw new ForbiddenError("Not allowed to delete Task");
+    }
+    // console.log("Before deletion Service layer", listUid);
+    await TaskRepository.deleteAllTask(list.id);
   }
 }
 

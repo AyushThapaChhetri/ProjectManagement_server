@@ -30,6 +30,9 @@ export class TaskResponseData {
   @Example("01HXPROJUID456XYZABC7890")
   projectUid!: string;
 
+  @Example("01HXPROJUID456XYZABC7890")
+  listUid!: string;
+
   @Example("01HXUSERUID456XYZABC7890")
   assignedToUid?: string | null;
 

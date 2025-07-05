@@ -37,10 +37,14 @@ type RawOrJoinedTask = {
   estimatedHours: number | null;
   createdAt: Date;
   updatedAt: Date;
+  projectId?: number;
   project?: { uid: string };
+  listId?: number;
+  list?: { uid: string };
   assignedTo?: { uid: string };
-  createdBy?: { uid: string };
+  createdBy?: { uid: string } | null;
   projectUid?: string;
+  listUid?: string;
   assignedToUid?: string;
   createdByUid?: string;
 };
@@ -59,6 +63,7 @@ class TaskDTO {
       createdAt: task.createdAt.toISOString(),
       updatedAt: task.updatedAt.toISOString(),
       projectUid: task.project?.uid ?? task.projectUid ?? "",
+      listUid: task.list?.uid ?? task.listUid ?? "",
       assignedToUid: task.assignedTo?.uid ?? task.assignedToUid ?? "",
       createdByUid: task.createdBy?.uid ?? task.createdByUid ?? "",
     };

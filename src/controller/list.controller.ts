@@ -141,6 +141,7 @@ export class ListController extends BaseController {
   ])
   @Delete("{listUid}")
   public async delete(@Request() request: ExRequest, @Path() listUid: string) {
+    console.log("Form the controller", listUid);
     await ListService.deleteList(listUid, request.user);
     return super.deleteOk({
       message: "Task Deleted Successfully",

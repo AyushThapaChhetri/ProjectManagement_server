@@ -80,7 +80,14 @@ class _ListService {
       ...rest,
       projectId: project.id,
     };
-    return ListRepository.update(listUid, listData);
+    const ListResponse = await ListRepository.update(listUid, listData);
+
+    const AddResponseList = {
+      ...ListResponse,
+      projectUid: projectUid,
+      createdByUid: ListResponse?.createdBy?.uid,
+    };
+    return AddResponseList;
   }
 
   async patchList(
@@ -90,6 +97,7 @@ class _ListService {
     params: Partial<ListRequest>
   ) {
     const { projectUid, ...rest } = params;
+    console.log("projecetUid from patch list:", projectUid);
     const currentUser = await UserService.getUserWithRoles(currentUserUid);
     const list = await this.getByUid(listUid);
 
@@ -124,7 +132,15 @@ class _ListService {
       ...rest,
       ...(projectId !== undefined ? { projectId } : {}),
     };
-    return ListRepository.patch(listUid, listData);
+
+    const ListResponse = await ListRepository.patch(listUid, listData);
+
+    const AddResponseList = {
+      ...ListResponse,
+      projectUid: ListResponse.project.uid,
+      createdByUid: ListResponse.createdBy?.uid,
+    };
+    return AddResponseList;
   }
 
   async deleteList(listUid: string, currentUser: User) {
@@ -136,6 +152,7 @@ class _ListService {
     //  Ownership check
     // Fetch the user with roles from the repository
     const user = await UserService.getUserWithRoles(currentUser.uid);
+
     const roles = user.userRoles.map((ur) => ur.role.name);
 
     const privilegedRoles = ["Admin", "Super Admin"];
@@ -152,7 +169,7 @@ class _ListService {
       );
     }
 
-    return await ListRepository.delete(listUid);
+    return await ListRepository.delete(list.id);
   }
 
   async getByUid(listUid: string) {
@@ -164,6 +181,12 @@ class _ListService {
     const list = await ListRepository.findById(listId);
     if (!list) throw new NotFoundError("List not found");
     return list;
+  }
+
+  async getManagerByListUid(listUid: string) {
+    const manager = await ListRepository.findManagerByListUid(listUid);
+    if (!manager) throw new NotFoundError("Manager not found");
+    return manager;
   }
 }
 
