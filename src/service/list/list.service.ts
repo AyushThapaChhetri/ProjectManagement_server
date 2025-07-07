@@ -183,6 +183,20 @@ class _ListService {
     return list;
   }
 
+  async getListByProject(
+    page: number,
+    limit: number,
+    projectId: number | null
+  ) {
+    const lists = await ListRepository.findAllListByProject(
+      page,
+      limit,
+      projectId
+    );
+    if (!lists) throw new NotFoundError("List not found");
+    return lists;
+  }
+
   async getManagerByListUid(listUid: string) {
     const manager = await ListRepository.findManagerByListUid(listUid);
     if (!manager) throw new NotFoundError("Manager not found");

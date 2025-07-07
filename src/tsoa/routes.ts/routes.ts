@@ -207,6 +207,7 @@ const models: TsoaRoute.Models = {
             "endDate": {"dataType":"union","subSchemas":[{"dataType":"string"},{"dataType":"enum","enums":[null]}]},
             "estimatedHours": {"dataType":"union","subSchemas":[{"dataType":"double"},{"dataType":"enum","enums":[null]}]},
             "projectUid": {"dataType":"string","required":true},
+            "listUid": {"dataType":"string","required":true},
             "assignedToUid": {"dataType":"union","subSchemas":[{"dataType":"string"},{"dataType":"enum","enums":[null]}]},
             "createdByUid": {"dataType":"string","required":true},
             "createdAt": {"dataType":"string","required":true},
@@ -248,6 +249,16 @@ const models: TsoaRoute.Models = {
             "assignedToUid": {"dataType":"string"},
             "projectUid": {"dataType":"string","required":true},
             "listUid": {"dataType":"string","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ApiResponse_TaskResponseData-Array_": {
+        "dataType": "refObject",
+        "properties": {
+            "statusCode": {"dataType":"double","required":true},
+            "message": {"dataType":"string","required":true},
+            "data": {"dataType":"array","array":{"dataType":"refObject","ref":"TaskResponseData"},"required":true},
         },
         "additionalProperties": false,
     },
@@ -321,6 +332,16 @@ const models: TsoaRoute.Models = {
             "description": {"dataType":"string"},
             "deadline": {"dataType":"string"},
             "managerUid": {"dataType":"string"},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ApiResponse_ProjectResponse-Array_": {
+        "dataType": "refObject",
+        "properties": {
+            "statusCode": {"dataType":"double","required":true},
+            "message": {"dataType":"string","required":true},
+            "data": {"dataType":"array","array":{"dataType":"refObject","ref":"ProjectResponse"},"required":true},
         },
         "additionalProperties": false,
     },
@@ -998,26 +1019,94 @@ export function RegisterRoutes(app: Router) {
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        const argsProjectController_getById: Record<string, TsoaRoute.ParameterSchema> = {
+        const argsProjectController_getListByProject: Record<string, TsoaRoute.ParameterSchema> = {
+                req: {"in":"request","name":"req","required":true,"dataType":"object"},
+                page: {"default":1,"in":"query","name":"page","dataType":"double"},
+                limit: {"default":10,"in":"query","name":"limit","dataType":"double"},
                 projectUid: {"in":"path","name":"projectUid","required":true,"dataType":"string"},
         };
-        app.get('/api/projects/:projectUid',
+        app.get('/api/projects/:projectUid/lists',
             authenticateMiddleware([{"jwt":[]}]),
             ...(fetchMiddlewares<RequestHandler>(ProjectController)),
-            ...(fetchMiddlewares<RequestHandler>(ProjectController.prototype.getById)),
+            ...(fetchMiddlewares<RequestHandler>(ProjectController.prototype.getListByProject)),
 
-            async function ProjectController_getById(request: ExRequest, response: ExResponse, next: any) {
+            async function ProjectController_getListByProject(request: ExRequest, response: ExResponse, next: any) {
 
             // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 
             let validatedArgs: any[] = [];
             try {
-                validatedArgs = templateService.getValidatedArgs({ args: argsProjectController_getById, request, response });
+                validatedArgs = templateService.getValidatedArgs({ args: argsProjectController_getListByProject, request, response });
 
                 const controller = new ProjectController();
 
               await templateService.apiHandler({
-                methodName: 'getById',
+                methodName: 'getListByProject',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: 200,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        const argsProjectController_getTaskByProject: Record<string, TsoaRoute.ParameterSchema> = {
+                req: {"in":"request","name":"req","required":true,"dataType":"object"},
+                page: {"default":1,"in":"query","name":"page","dataType":"double"},
+                limit: {"default":10,"in":"query","name":"limit","dataType":"double"},
+                projectUid: {"in":"path","name":"projectUid","required":true,"dataType":"string"},
+        };
+        app.get('/api/projects/:projectUid/tasks',
+            authenticateMiddleware([{"jwt":[]}]),
+            ...(fetchMiddlewares<RequestHandler>(ProjectController)),
+            ...(fetchMiddlewares<RequestHandler>(ProjectController.prototype.getTaskByProject)),
+
+            async function ProjectController_getTaskByProject(request: ExRequest, response: ExResponse, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args: argsProjectController_getTaskByProject, request, response });
+
+                const controller = new ProjectController();
+
+              await templateService.apiHandler({
+                methodName: 'getTaskByProject',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: 200,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        const argsProjectController_getByUid: Record<string, TsoaRoute.ParameterSchema> = {
+                projectUid: {"in":"path","name":"projectUid","required":true,"dataType":"string"},
+        };
+        app.get('/api/projects/:projectUid',
+            authenticateMiddleware([{"jwt":[]}]),
+            ...(fetchMiddlewares<RequestHandler>(ProjectController)),
+            ...(fetchMiddlewares<RequestHandler>(ProjectController.prototype.getByUid)),
+
+            async function ProjectController_getByUid(request: ExRequest, response: ExResponse, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args: argsProjectController_getByUid, request, response });
+
+                const controller = new ProjectController();
+
+              await templateService.apiHandler({
+                methodName: 'getByUid',
                 controller,
                 response,
                 next,

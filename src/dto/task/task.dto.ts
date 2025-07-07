@@ -49,7 +49,7 @@ type RawOrJoinedTask = {
   createdByUid?: string;
 };
 
-class TaskDTO {
+class _TaskDTO {
   single(task: RawOrJoinedTask): TaskResponseData {
     return {
       uid: task.uid,
@@ -74,4 +74,4 @@ class TaskDTO {
   }
 }
 
-export default new TaskDTO();
+export const TaskDTO = new _TaskDTO();

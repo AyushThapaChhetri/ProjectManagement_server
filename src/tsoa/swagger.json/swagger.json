@@ -469,6 +469,10 @@
 						"type": "string",
 						"example": "01HXPROJUID456XYZABC7890"
 					},
+					"listUid": {
+						"type": "string",
+						"example": "01HXPROJUID456XYZABC7890"
+					},
 					"assignedToUid": {
 						"type": "string",
 						"nullable": true,
@@ -493,6 +497,7 @@
 					"priority",
 					"status",
 					"projectUid",
+					"listUid",
 					"createdByUid",
 					"createdAt",
 					"updatedAt"
@@ -588,6 +593,31 @@
 					"status",
 					"projectUid",
 					"listUid"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_TaskResponseData-Array_": {
+				"properties": {
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/TaskResponseData"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"statusCode",
+					"message",
+					"data"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -775,6 +805,31 @@
 				},
 				"required": [
 					"name"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_ProjectResponse-Array_": {
+				"properties": {
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/ProjectResponse"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"statusCode",
+					"message",
+					"data"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -1579,7 +1634,7 @@
 								"schema": {
 									"allOf": [
 										{
-											"$ref": "#/components/schemas/ApiResponse_any_"
+											"$ref": "#/components/schemas/ApiResponse_TaskResponseData-Array_"
 										},
 										{
 											"properties": {
@@ -2142,7 +2197,7 @@
 								"schema": {
 									"allOf": [
 										{
-											"$ref": "#/components/schemas/ApiResponse_any_"
+											"$ref": "#/components/schemas/ApiResponse_ProjectResponse-Array_"
 										},
 										{
 											"properties": {
@@ -2231,9 +2286,228 @@
 				]
 			}
 		},
+		"/api/projects/{projectUid}/lists": {
+			"get": {
+				"operationId": "GetListByProject",
+				"responses": {
+					"200": {
+						"description": "List Retrieved Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"allOf": [
+										{
+											"$ref": "#/components/schemas/ApiResponse_any_"
+										},
+										{
+											"properties": {
+												"total": {
+													"type": "number",
+													"format": "double"
+												}
+											},
+											"required": [
+												"total"
+											],
+											"type": "object"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Projects"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "page",
+						"required": false,
+						"schema": {
+							"default": 1,
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "limit",
+						"required": false,
+						"schema": {
+							"default": 10,
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "path",
+						"name": "projectUid",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api/projects/{projectUid}/tasks": {
+			"get": {
+				"operationId": "GetTaskByProject",
+				"responses": {
+					"200": {
+						"description": "Task Retrieved Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"allOf": [
+										{
+											"$ref": "#/components/schemas/ApiResponse_any_"
+										},
+										{
+											"properties": {
+												"total": {}
+											},
+											"required": [
+												"total"
+											],
+											"type": "object"
+										}
+									]
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Projects"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "page",
+						"required": false,
+						"schema": {
+							"default": 1,
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "limit",
+						"required": false,
+						"schema": {
+							"default": 10,
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "path",
+						"name": "projectUid",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
 		"/api/projects/{projectUid}": {
 			"get": {
-				"operationId": "GetById",
+				"operationId": "GetByUid",
 				"responses": {
 					"200": {
 						"description": "Project Retrieved Successfully",

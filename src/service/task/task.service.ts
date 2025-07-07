@@ -13,7 +13,7 @@ import { RoleService } from "../role/role.service";
 import { UserService } from "../user/user.service";
 import { ProjectService } from "../project/project.service";
 
-class TaskService {
+class _TaskService {
   async create(
     currentUserUid: string,
     params: {
@@ -259,6 +259,20 @@ class TaskService {
     // console.log("Before deletion Service layer", listUid);
     await TaskRepository.deleteAllTask(list.id);
   }
+
+  async getTaskByProject(
+    page: number,
+    limit: number,
+    projectId: number | null
+  ) {
+    const tasks = await TaskRepository.findAllTaskByProject(
+      page,
+      limit,
+      projectId
+    );
+    if (!tasks) throw new NotFoundError("Tasks not found");
+    return tasks;
+  }
 }
 
-export default new TaskService();
+export const TaskService = new _TaskService();

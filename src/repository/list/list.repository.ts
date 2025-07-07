@@ -29,6 +29,38 @@ class _ListRepository extends BaseRepository {
     ]);
     return { lists, total };
   }
+  async findAllListByProject(
+    page: number,
+    limit: number,
+    projectId: number | null
+  ) {
+    const whereClause = projectId !== null ? { projectId } : {};
+    const [total, lists] = await Promise.all([
+      prisma.list.count({
+        where: whereClause, // Apply the filter here too
+      }),
+      prisma.list.findMany({
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: "asc" },
+        where: whereClause,
+
+        include: {
+          createdBy: {
+            select: {
+              uid: true,
+            },
+          },
+          project: {
+            select: {
+              uid: true,
+            },
+          },
+        },
+      }),
+    ]);
+    return { lists, total };
+  }
 
   async update(
     listUid: string,

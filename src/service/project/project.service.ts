@@ -8,6 +8,9 @@ import {
 } from "../contract/errors/errors";
 import { User } from "@prisma/client";
 import { UserService } from "../user/user.service";
+import { ListService } from "../list/list.service";
+import { number } from "yup";
+import { TaskService } from "../task/task.service";
 
 class _ProjectService {
   async create(
@@ -78,6 +81,30 @@ class _ProjectService {
 
   async getAllPaginated(page: number, limit: number) {
     return await ProjectRepository.findAllPaginated(page, limit);
+  }
+
+  async getListByProject(page: number, limit: number, projectUid: string) {
+    //check if there is project
+    const project = await ProjectRepository.findByUid(projectUid);
+
+    let projectId: number | null = null;
+    if (project) {
+      projectId = project.id;
+    }
+    const tasks = await ListService.getListByProject(page, limit, projectId);
+    return tasks;
+  }
+
+  async getTaskByProject(page: number, limit: number, projectUid: string) {
+    //check if there is project
+    const project = await ProjectRepository.findByUid(projectUid);
+
+    let projectId: number | null = null;
+    if (project) {
+      projectId = project.id;
+    }
+    const tasks = await TaskService.getTaskByProject(page, limit, projectId);
+    return tasks;
   }
 
   async updateProject(

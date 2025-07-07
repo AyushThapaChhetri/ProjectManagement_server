@@ -41,6 +41,8 @@ import { NotFoundErrorResponse } from "../dto/Error/NotFoundErrorResponse.dto";
 import { convertUndefinedToNull } from "../libs/normalize/normalize.utils";
 import { ProjectDTO } from "../dto/project/project.dto";
 import { ProjectService } from "../service/project/project.service";
+import { ListDTO } from "@app/dto/list/list.dto";
+import { TaskDTO } from "@app/dto/task/task.dto";
 
 // Controller
 @Security("jwt")
@@ -97,7 +99,56 @@ export class ProjectController extends BaseController {
     return Object.assign(
       super.getOk({
         message: total ? "Projects fetched successfully" : "No Project found",
-        data: projects,
+        data: ProjectDTO.list(projects),
+      }),
+      { total }
+    );
+  }
+
+  @SuccessResponse("200", "List Retrieved Successfully")
+  @Get("/{projectUid}/lists")
+  @Middlewares(checkPrivilege("read_list"))
+  async getListByProject(
+    @Request() req: ExRequest,
+    @Query() page: number = 1,
+    @Query() limit: number = 10,
+    @Path() projectUid: string
+  ) {
+    const { lists, total } = await ProjectService.getListByProject(
+      page,
+      limit,
+      projectUid
+    );
+
+    return Object.assign(
+      super.getOk({
+        message: total ? "List fetched successfully" : "No List found",
+        data: ListDTO.list(lists),
+      }),
+      { total }
+    );
+  }
+
+  @SuccessResponse("200", "Task Retrieved Successfully")
+  @Get("/{projectUid}/tasks")
+  @Middlewares(checkPrivilege("read_task"))
+  async getTaskByProject(
+    @Request() req: ExRequest,
+    @Query() page: number = 1,
+    @Query() limit: number = 10,
+    @Path() projectUid: string
+  ) {
+    const { tasks, total } = await ProjectService.getTaskByProject(
+      page,
+      limit,
+      projectUid
+    );
+
+    return Object.assign(
+      super.getOk({
+        message: total ? "Tasks fetched successfully" : "No Task found",
+        // data: TaskDTO.single(tasks),
+        data: TaskDTO.list(tasks),
       }),
       { total }
     );
@@ -109,7 +160,7 @@ export class ProjectController extends BaseController {
     checkPrivilege("read_project"),
   ])
   @Get("{projectUid}")
-  public async getById(
+  public async getByUid(
     // @Request() req: ExRequest,
     @Path() projectUid: string
   ): Promise<ApiResponse<ProjectResponse>> {

@@ -18,9 +18,9 @@ import {
   Tags,
 } from "tsoa";
 import BaseController from "./contract/baseController.contract";
-import TaskService from "../service/task/task.service";
+import { TaskService } from "../service/task/task.service";
 import { TaskRequest } from "../dto/task/TaskRequest.dto";
-import TaskDTO from "../dto/task/task.dto";
+import { TaskDTO } from "../dto/task/task.dto";
 import { ValidationErrorResponse } from "../dto/Error/ValidationErrorResponse.dto";
 import { UnauthorizedErrorResponse } from "../dto/Error/UnauthorizedErrorResponse.dto";
 import { ForbiddenErrorResponse } from "../dto/Error/ForbiddenErrorResponse.dto";

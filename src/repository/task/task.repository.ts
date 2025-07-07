@@ -160,6 +160,43 @@ class TaskRepository extends BaseRepository {
       })
     );
   }
+
+  async findAllTaskByProject(
+    page: number,
+    limit: number,
+    projectId: number | null
+  ) {
+    const whereClause = projectId !== null ? { projectId } : {};
+    const [total, tasks] = await Promise.all([
+      prisma.task.count({
+        where: whereClause,
+      }),
+      prisma.task.findMany({
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: "asc" },
+        where: whereClause,
+        include: {
+          createdBy: {
+            select: {
+              uid: true,
+            },
+          },
+          list: {
+            select: {
+              uid: true,
+            },
+          },
+          project: {
+            select: {
+              uid: true,
+            },
+          },
+        },
+      }),
+    ]);
+    return { tasks, total };
+  }
 }
 
 export default new TaskRepository();
