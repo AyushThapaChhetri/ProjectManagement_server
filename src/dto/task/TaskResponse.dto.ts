@@ -34,7 +34,7 @@ export class TaskResponseData {
   listUid!: string;
 
   @Example("01HXUSERUID456XYZABC7890")
-  assignedToUid?: string | null;
+  assignedToUsers: string[];
 
   @Example("abc123-user-uid")
   createdByUid!: string;

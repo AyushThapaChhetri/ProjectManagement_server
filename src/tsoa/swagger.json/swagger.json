@@ -306,6 +306,31 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"ApiResponse_UserResponseData-Array_": {
+				"properties": {
+					"statusCode": {
+						"type": "number",
+						"format": "double",
+						"example": 200
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/UserResponseData"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"statusCode",
+					"message",
+					"data"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"UserUpdateRequest": {
 				"properties": {
 					"firstName": {
@@ -473,9 +498,11 @@
 						"type": "string",
 						"example": "01HXPROJUID456XYZABC7890"
 					},
-					"assignedToUid": {
-						"type": "string",
-						"nullable": true,
+					"assignedToUsers": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
 						"example": "01HXUSERUID456XYZABC7890"
 					},
 					"createdByUid": {
@@ -498,6 +525,7 @@
 					"status",
 					"projectUid",
 					"listUid",
+					"assignedToUsers",
 					"createdByUid",
 					"createdAt",
 					"updatedAt"
@@ -574,9 +602,15 @@
 						"format": "double",
 						"example": 12.5
 					},
-					"assignedToUid": {
-						"type": "string",
-						"example": "c289f43e-89de-42ef-8e1a-35a222d1ac12"
+					"assignedToUsers": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"example": [
+							"c289f43e-89de-42ef-8e1a-35a222d1ac12",
+							"ef732123-aaaa-4e10-998b-bbbbc456def0"
+						]
 					},
 					"projectUid": {
 						"type": "string",
@@ -673,9 +707,15 @@
 						"format": "double",
 						"example": 12.5
 					},
-					"assignedToUid": {
-						"type": "string",
-						"example": "c289f43e-89de-42ef-8e1a-35a222d1ac12"
+					"assignedToUsers": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"example": [
+							"c289f43e-89de-42ef-8e1a-35a222d1ac12",
+							"ef732123-aaaa-4e10-998b-bbbbc456def0"
+						]
 					},
 					"projectUid": {
 						"type": "string",
@@ -1304,6 +1344,41 @@
 				]
 			}
 		},
+		"/api/user/employee": {
+			"get": {
+				"operationId": "GetEmployees",
+				"responses": {
+					"200": {
+						"description": "Employees fetched successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_UserResponseData-Array_"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"User"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "search",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
 		"/api/user/{uid}": {
 			"get": {
 				"operationId": "GetUserByUid",
@@ -1888,7 +1963,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_any_"
+									"$ref": "#/components/schemas/ApiResponse_TaskResponseData_"
 								}
 							}
 						}
@@ -1972,6 +2047,81 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/ApiResponse____"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/UnauthorizedErrorResponse"
+								}
+							}
+						}
+					},
+					"403": {
+						"description": "Forbidden",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ForbiddenErrorResponse"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Not Found Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/NotFoundErrorResponse"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation failed",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ValidationErrorResponse"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Tasks"
+				],
+				"security": [
+					{
+						"jwt": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "taskUid",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/api/tasks/{taskUid}/assigned_Users": {
+			"get": {
+				"operationId": "GetUsersByTaskUid",
+				"responses": {
+					"200": {
+						"description": "Users Retrieved Successfully",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_TaskResponseData_"
 								}
 							}
 						}

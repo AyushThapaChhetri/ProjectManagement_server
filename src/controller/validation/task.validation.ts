@@ -39,10 +39,7 @@ export const TaskValidationSchema = BaseYup.object({
     .typeError("Estimated hours must be a number")
     .optional(),
 
-  assignedToUid: BaseYup.string()
-    .nullable()
-    .typeError("AssignedToUid must be a string")
-    .optional(),
+  assignedToUid: BaseYup.array().of(BaseYup.string()).optional().nullable(),
 });
 
 // get Task by Id
@@ -104,8 +101,5 @@ export const updateTaskValidationSchema = BaseYup.object({
     .typeError("Estimated hours must be a number")
     .optional(),
 
-  assignedToUid: BaseYup.string()
-    .nullable()
-    .typeError("AssignedToUid must be a string")
-    .optional(),
+  assignedToUsers: BaseYup.array().of(BaseYup.string()).optional(),
 });

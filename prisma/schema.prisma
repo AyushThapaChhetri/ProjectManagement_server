@@ -220,8 +220,12 @@ model Task {
   startDate      DateTime?
   endDate        DateTime?
   estimatedHours Float?
-  assignedToId   Int?
-  assignedTo     User? @relation("TaskAssignedTo",fields:[assignedToId],references:[id], onDelete: SetNull)
+
+  // assignedToId   Int?
+  // assignedTo     User? @relation("TaskAssignedTo",fields:[assignedToId],references:[id], onDelete: SetNull)
+
+  //  Many-to-many assigned users
+  assignedToUsers User[] @relation("TaskAssignedTo")
 
   //To Track who created task
   createdById Int?

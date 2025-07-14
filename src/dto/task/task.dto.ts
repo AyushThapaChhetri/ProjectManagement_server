@@ -45,7 +45,12 @@ type RawOrJoinedTask = {
   createdBy?: { uid: string } | null;
   projectUid?: string;
   listUid?: string;
-  assignedToUid?: string;
+  assignedToUsers?: {
+    uid: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+  }[];
   createdByUid?: string;
 };
 
@@ -64,13 +69,30 @@ class _TaskDTO {
       updatedAt: task.updatedAt.toISOString(),
       projectUid: task.project?.uid ?? task.projectUid ?? "",
       listUid: task.list?.uid ?? task.listUid ?? "",
-      assignedToUid: task.assignedTo?.uid ?? task.assignedToUid ?? "",
+      assignedToUsers: Array.isArray(task.assignedToUsers)
+        ? task.assignedToUsers.map((user) => user.uid)
+        : [],
       createdByUid: task.createdBy?.uid ?? task.createdByUid ?? "",
     };
   }
 
   list(tasks: RawOrJoinedTask[]): TaskResponseData[] {
     return tasks.map((t) => this.single(t));
+  }
+
+  tasksAssignedUsers(task: RawOrJoinedTask) {
+    return {
+      assignedToUsers: Array.isArray(task.assignedToUsers)
+        ? task.assignedToUsers.map((user) => {
+            return {
+              uid: user.uid,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              email: user.email,
+            };
+          })
+        : [],
+    };
   }
 }
 

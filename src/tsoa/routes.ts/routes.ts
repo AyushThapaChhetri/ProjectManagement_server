@@ -139,6 +139,16 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ApiResponse_UserResponseData-Array_": {
+        "dataType": "refObject",
+        "properties": {
+            "statusCode": {"dataType":"double","required":true},
+            "message": {"dataType":"string","required":true},
+            "data": {"dataType":"array","array":{"dataType":"refObject","ref":"UserResponseData"},"required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "UserUpdateRequest": {
         "dataType": "refObject",
         "properties": {
@@ -208,7 +218,7 @@ const models: TsoaRoute.Models = {
             "estimatedHours": {"dataType":"union","subSchemas":[{"dataType":"double"},{"dataType":"enum","enums":[null]}]},
             "projectUid": {"dataType":"string","required":true},
             "listUid": {"dataType":"string","required":true},
-            "assignedToUid": {"dataType":"union","subSchemas":[{"dataType":"string"},{"dataType":"enum","enums":[null]}]},
+            "assignedToUsers": {"dataType":"array","array":{"dataType":"string"},"required":true},
             "createdByUid": {"dataType":"string","required":true},
             "createdAt": {"dataType":"string","required":true},
             "updatedAt": {"dataType":"string","required":true},
@@ -246,7 +256,7 @@ const models: TsoaRoute.Models = {
             "startDate": {"dataType":"string"},
             "endDate": {"dataType":"string"},
             "estimatedHours": {"dataType":"double"},
-            "assignedToUid": {"dataType":"string"},
+            "assignedToUsers": {"dataType":"array","array":{"dataType":"string"}},
             "projectUid": {"dataType":"string","required":true},
             "listUid": {"dataType":"string","required":true},
         },
@@ -283,7 +293,7 @@ const models: TsoaRoute.Models = {
             "startDate": {"dataType":"string"},
             "endDate": {"dataType":"string"},
             "estimatedHours": {"dataType":"double"},
-            "assignedToUid": {"dataType":"string"},
+            "assignedToUsers": {"dataType":"array","array":{"dataType":"string"}},
             "projectUid": {"dataType":"string"},
             "listUid": {"dataType":"string"},
         },
@@ -537,7 +547,7 @@ export function RegisterRoutes(app: Router) {
         const args_UserController_getAllUsers: Record<string, TsoaRoute.ParameterSchema> = {
                 page: {"default":1,"in":"query","name":"page","dataType":"double"},
                 limit: {"default":10,"in":"query","name":"limit","dataType":"double"},
-                request: {"in":"request","name":"request","required":true,"dataType":"object"},
+                req: {"in":"request","name":"req","required":true,"dataType":"object"},
         };
         app.get('/api/user',
             authenticateMiddleware([{"jwt":[]}]),
@@ -556,6 +566,38 @@ export function RegisterRoutes(app: Router) {
 
               await templateService.apiHandler({
                 methodName: 'getAllUsers',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: 200,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        const args_UserController_getEmployees: Record<string, TsoaRoute.ParameterSchema> = {
+                req: {"in":"request","name":"req","required":true,"dataType":"object"},
+                search: {"in":"query","name":"search","dataType":"string"},
+        };
+        app.get('/api/user/employee',
+            authenticateMiddleware([{"jwt":[]}]),
+            ...(fetchMiddlewares<RequestHandler>(_UserController)),
+            ...(fetchMiddlewares<RequestHandler>(_UserController.prototype.getEmployees)),
+
+            async function _UserController_getEmployees(request: ExRequest, response: ExResponse, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args: args_UserController_getEmployees, request, response });
+
+                const controller = new _UserController();
+
+              await templateService.apiHandler({
+                methodName: 'getEmployees',
                 controller,
                 response,
                 next,
@@ -813,6 +855,37 @@ export function RegisterRoutes(app: Router) {
 
               await templateService.apiHandler({
                 methodName: 'getByUid',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: 200,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        const argsTaskController_getUsersByTaskUid: Record<string, TsoaRoute.ParameterSchema> = {
+                taskUid: {"in":"path","name":"taskUid","required":true,"dataType":"string"},
+        };
+        app.get('/api/tasks/:taskUid/assigned_Users',
+            authenticateMiddleware([{"jwt":[]}]),
+            ...(fetchMiddlewares<RequestHandler>(TaskController)),
+            ...(fetchMiddlewares<RequestHandler>(TaskController.prototype.getUsersByTaskUid)),
+
+            async function TaskController_getUsersByTaskUid(request: ExRequest, response: ExResponse, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args: argsTaskController_getUsersByTaskUid, request, response });
+
+                const controller = new TaskController();
+
+              await templateService.apiHandler({
+                methodName: 'getUsersByTaskUid',
                 controller,
                 response,
                 next,

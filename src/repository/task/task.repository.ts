@@ -2,20 +2,41 @@ import prisma from "@app/config/db.config";
 import BaseRepository from "../contract/baseRepository";
 
 class TaskRepository extends BaseRepository {
-  async create(data: {
-    projectId: number;
-    listId: number;
-    name: string;
-    description?: string;
-    priority: string;
-    status: string;
-    startDate?: Date;
-    endDate?: Date;
-    estimatedHours?: number;
-    assignedToId?: number;
-    createdById?: number;
-  }) {
-    return super.dbCatch(prisma.task.create({ data }));
+  async create(
+    createData: {
+      projectId: number;
+      listId: number;
+      name: string;
+      description: string | null;
+      priority: string;
+      status: string;
+      startDate: Date | null;
+      endDate: Date | null;
+      estimatedHours: number | null;
+      createdById: number;
+    },
+    assignedUsers:
+      | {
+          id: number;
+        }[]
+      | null
+  ) {
+    return super.dbCatch(
+      prisma.task.create({
+        data: {
+          ...createData,
+          ...(assignedUsers
+            ? { assignedToUsers: { connect: assignedUsers } }
+            : {}),
+        },
+        include: {
+          assignedToUsers: true,
+          project: true,
+          list: true,
+          createdBy: true,
+        },
+      })
+    );
   }
 
   async findProjectByUid(projectUid: string) {
@@ -42,6 +63,11 @@ class TaskRepository extends BaseRepository {
             },
           },
           project: {
+            select: {
+              uid: true,
+            },
+          },
+          assignedToUsers: {
             select: {
               uid: true,
             },
@@ -86,7 +112,20 @@ class TaskRepository extends BaseRepository {
 
   async findByUser(userId: number) {
     return super.dbCatch(
-      prisma.task.findMany({ where: { assignedToId: userId } })
+      prisma.task.findMany({
+        where: {
+          assignedToUsers: {
+            some: {
+              id: userId,
+            },
+          },
+        },
+        include: {
+          assignedToUsers: true,
+          project: true,
+          list: true,
+        },
+      })
     );
   }
 
@@ -102,8 +141,10 @@ class TaskRepository extends BaseRepository {
       startDate?: Date;
       endDate?: Date;
       estimatedHours?: number;
-      assignedToId?: number;
-    }
+    },
+    assignedUsers?: {
+      id: number;
+    }[]
   ) {
     // prisma.$transaction(async (tx){
     //   await tx.role.create({data:{name:"BAC"}});
@@ -117,6 +158,13 @@ class TaskRepository extends BaseRepository {
         data: {
           ...data,
           updatedAt: new Date(),
+          ...(assignedUsers ? { assingedToUsers: { set: assignedUsers } } : {}),
+        },
+        include: {
+          project: true,
+          list: true,
+          assignedToUsers: true,
+          createdBy: true,
         },
       })
     );
@@ -126,6 +174,7 @@ class TaskRepository extends BaseRepository {
     taskUid: string,
     patchData: Partial<{
       projectId: number;
+      listId: number;
       name: string;
       description: string;
       priority: string;
@@ -133,8 +182,10 @@ class TaskRepository extends BaseRepository {
       startDate: Date;
       endDate: Date;
       estimatedHours: number;
-      assignedToId: number;
-    }>
+    }>,
+    assignedUsers?: {
+      id: number;
+    }[]
   ) {
     return super.dbCatch(
       prisma.task.update({
@@ -142,6 +193,13 @@ class TaskRepository extends BaseRepository {
         data: {
           ...patchData,
           updatedAt: new Date(),
+          ...(assignedUsers ? { assignedToUsers: { set: assignedUsers } } : {}),
+        },
+        include: {
+          assignedToUsers: true,
+          project: true,
+          list: true,
+          createdBy: true,
         },
       })
     );
@@ -192,10 +250,40 @@ class TaskRepository extends BaseRepository {
               uid: true,
             },
           },
+          assignedToUsers: {
+            select: {
+              uid: true,
+            },
+          },
         },
       }),
     ]);
     return { tasks, total };
+  }
+  async findUsersByTaskUid(taskUid: string) {
+    return await super.dbCatch(
+      prisma.task.findUnique({
+        where: { uid: taskUid },
+        include: {
+          createdBy: {
+            select: {
+              uid: true,
+            },
+          },
+          list: {
+            select: {
+              uid: true,
+            },
+          },
+          project: {
+            select: {
+              uid: true,
+            },
+          },
+          assignedToUsers: true,
+        },
+      })
+    );
   }
 }
 

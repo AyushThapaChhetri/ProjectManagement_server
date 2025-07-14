@@ -20,25 +20,36 @@ class _TaskService {
       projectUid: string;
       listUid: string;
       name: string;
-      description?: string;
+      description: string | null;
       priority: string;
       status: string;
-      startDate?: Date;
-      endDate?: Date;
-      estimatedHours?: number;
-      assignedToUid?: string;
+      startDate: Date | null;
+      endDate: Date | null;
+      estimatedHours: number | null;
+      assignedToUsers: string[] | null;
     }
   ) {
-    const { projectUid, listUid, assignedToUid } = params;
+    const { projectUid, listUid, assignedToUsers } = params;
 
     // 1. Validate project and list
     const project = await ProjectService.getByUid(projectUid);
     const list = await ListService.getByUid(listUid);
 
-    let assignedToId: number | undefined;
-    if (assignedToUid) {
-      const assignedUser = await UserService.findByUid(assignedToUid);
-      assignedToId = assignedUser.id;
+    let assignedUsers: { id: number }[] | null = null;
+    if (assignedToUsers && assignedToUsers.length > 0) {
+      try {
+        const users = await Promise.all(
+          assignedToUsers.map(async (uid) => {
+            const user = await UserService.findByUid(uid);
+            return { id: user.id };
+          })
+        );
+        assignedUsers = users;
+      } catch (err) {
+        throw new BadRequestError(
+          `Invalid assignedToUid: ${(err as Error).message}`
+        );
+      }
     }
 
     const currentUser = await UserService.getUserWithRoles(currentUserUid);
@@ -53,19 +64,18 @@ class _TaskService {
       startDate: params.startDate,
       endDate: params.endDate,
       estimatedHours: params.estimatedHours,
-      assignedToId,
       createdById: currentUserId,
       projectId: project.id,
       listId: list.id,
     };
 
-    const task = await TaskRepository.create(taskData);
+    const task = await TaskRepository.create(taskData, assignedUsers);
     const AddResponseTask = {
       ...task,
-      projectUid,
-      listUid,
-      assignedToUid,
-      createdByUid: currentUserUid,
+      projectUid: task.project.uid,
+      listUid: task.list.uid,
+      assignedToUsers: task.assignedToUsers,
+      createdByUid: task.createdBy?.uid,
     };
     return AddResponseTask;
   }
@@ -98,7 +108,7 @@ class _TaskService {
       startDate?: Date;
       endDate?: Date;
       estimatedHours?: number;
-      assignedToUid?: string;
+      assignedToUsers?: string[];
     }
   ) {
     const Task = await this.getByUid(taskUid);
@@ -116,20 +126,26 @@ class _TaskService {
       projectId: project.id,
       listId: list.id,
     };
-    let assignedToId: number | undefined;
-    if (updateData.assignedToUid) {
-      const user = await UserService.findByUid(updateData.assignedToUid);
-      assignedToId = user.id;
-    }
 
-    const taskData = { ...data, assignedToId };
-    const task = TaskRepository.updateTask(taskUid, taskData);
+    let assignedUsers: { id: number }[] | undefined;
+
+    if (updateData.assignedToUsers && updateData.assignedToUsers.length > 0) {
+      const users = await Promise.all(
+        updateData.assignedToUsers.map(async (uid) => {
+          const user = await UserService.findByUid(uid);
+          return { id: user.id };
+        })
+      );
+      assignedUsers = users;
+    }
+    const task = await TaskRepository.updateTask(taskUid, data, assignedUsers);
 
     const AddResponseTask = {
       ...task,
-      projectUid: project.uid,
-      listUid: list.uid,
-      assignedToUid: project.managerId,
+      projectUid: task.project.uid,
+      listUid: task.list.uid,
+      assignedToUsers: task.assignedToUsers,
+      createdBy: task.createdBy,
     };
     return AddResponseTask;
   }
@@ -147,8 +163,7 @@ class _TaskService {
       startDate: Date;
       endDate: Date;
       estimatedHours: number;
-      assignedToUid: string;
-      assignedToId: number;
+      assignedToUsers: string[];
     }>
   ) {
     // 1. Validate inputs
@@ -183,31 +198,56 @@ class _TaskService {
       }
     }
 
-    // Handle assignedToUid -> assignedToId
-    if (patchData.assignedToUid) {
-      const assignedUser = await UserService.findByUid(patchData.assignedToUid);
-      patchData.assignedToId = assignedUser.id;
-      delete patchData.assignedToUid;
+    // Create a safe shallow clone of patchData
+    const updatePayload = { ...patchData };
+
+    let assignedUsers: { id: number }[] | undefined = undefined;
+
+    if (patchData.assignedToUsers && patchData.assignedToUsers.length > 0) {
+      try {
+        const users = await Promise.all(
+          patchData.assignedToUsers.map(async (uid) => {
+            const user = await UserService.findByUid(uid);
+            return { id: user.id };
+          })
+        );
+
+        assignedUsers = users;
+        // delete patchData.assignedToUsers;
+        delete updatePayload.assignedToUsers;
+      } catch (err) {
+        throw new BadRequestError(
+          `Invalid assignedToUid: ${(err as Error).message}`
+        );
+      }
     }
+
+    console.log("From service:", updatePayload);
     // 4. Business logic & DB update
-    const updated = await TaskRepository.patchTask(taskUid, patchData);
+    const updated = await TaskRepository.patchTask(
+      taskUid,
+      updatePayload,
+      assignedUsers
+    );
 
-    const project = await ProjectService.getById(updated.projectId);
+    // const project = await ProjectService.getById(updated.projectId);
 
-    const list = await ListService.getById(updated.listId);
+    // const list = await ListService.getById(updated.listId);
 
-    let assignedToUid: string | null = null;
-    if (updated.assignedToId) {
-      const assignedUser = await UserService.findById(updated.assignedToId);
-      assignedToUid = assignedUser.uid;
-    }
+    // let assignedToUid: string | null = null;
+    // if (updated.assignedToId) {
+    //   const assignedUser = await UserService.findById(updated.assignedToId);
+    //   assignedToUid = assignedUser.uid;
+    // }
 
     const AddResponseTask = {
       ...updated,
-      projectUid: project.uid,
-      listUid: list.uid,
-      assignedToUid,
+      projectUid: updated.project.uid,
+      listUid: updated.list.uid,
+      assignedToUsers: updated.assignedToUsers,
+      createdBy: updated.createdBy,
     };
+    console.log("From service return to controller:", AddResponseTask);
     return AddResponseTask;
   }
 
@@ -270,6 +310,12 @@ class _TaskService {
       limit,
       projectId
     );
+    if (!tasks) throw new NotFoundError("Tasks not found");
+    return tasks;
+  }
+
+  async getUsersByTaskUid(taskUid: string) {
+    const tasks = await TaskRepository.findUsersByTaskUid(taskUid);
     if (!tasks) throw new NotFoundError("Tasks not found");
     return tasks;
   }

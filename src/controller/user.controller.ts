@@ -116,7 +116,7 @@ export class _UserController extends BaseController {
   async getAllUsers(
     @Query() page: number = 1,
     @Query() limit: number = 10,
-    @Request() request: ExRequest
+    @Request() req: ExRequest
   ): Promise<UserListResponse> {
     const { users, total } = await UserService.getAllPaginated(page, limit);
     return Object.assign(
@@ -126,6 +126,24 @@ export class _UserController extends BaseController {
       }),
       { total }
     );
+  }
+
+  @Security("jwt")
+  @SuccessResponse("200", "Employees fetched successfully")
+  @Get("/employee")
+  @Middlewares([authorize("assign_task")])
+  async getEmployees(
+    @Request() req: ExRequest,
+    @Query() search?: string
+    // ): Promise<DefaultResponse<UserDTO[]>> {
+  ) {
+    const currentUser = req.user;
+    const employees = await UserService.getEmployees(currentUser.uid, search);
+
+    return super.getOk({
+      message: "Employees fetched successfully",
+      data: UserDTO.list(employees),
+    });
   }
 
   // GET SINGLE USER

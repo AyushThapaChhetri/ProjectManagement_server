@@ -76,7 +76,13 @@ class _UserService {
   }
 
   async getAllPaginated(page: number, limit: number) {
-    return UserRepository.findAllPaginated(page, limit);
+    return await UserRepository.findAllPaginated(page, limit);
+  }
+
+  async getEmployees(currentUserUid: string, search?: string) {
+    // const currentUser = await this.getUserWithRoles(currentUserUid);
+
+    return await UserRepository.findEmployees(search);
   }
 
   async getByIdWithRoles(uid: string) {

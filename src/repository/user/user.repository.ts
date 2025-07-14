@@ -188,6 +188,43 @@ class UserRepository extends BaseRepository {
     return { users, total };
   }
 
+  async findEmployees(search?: string) {
+    const employees = await prisma.user.findMany({
+      where: {
+        userRoles: {
+          some: {
+            role: { name: "Employee" },
+          },
+        },
+        ...(search && {
+          OR: [
+            {
+              firstName: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              lastName: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+            {
+              email: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+          ],
+        }),
+      },
+      include: { userRoles: { include: { role: true } } },
+    });
+
+    return employees;
+  }
+
   async update(uid: string, data: UpdateUserParams) {
     return await prisma.user.update({
       where: { uid },

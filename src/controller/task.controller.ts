@@ -36,6 +36,7 @@ import { authorize } from "../middlewares/authorization";
 import { NotFoundError } from "../service/contract/errors/errors";
 import { NotFoundErrorResponse } from "../dto/Error/NotFoundErrorResponse.dto";
 import { PatchTaskRequest } from "../dto/task/PatchTaskRequest.dto";
+import { convertUndefinedToNull } from "@app/libs/normalize/normalize.utils";
 
 // Controller
 @Security("jwt")
@@ -59,13 +60,14 @@ export class TaskController extends BaseController {
   ])
   @Post()
   async create(@Request() req: ExRequest, @Body() body: TaskRequest) {
-    const taskData = {
+    const taskData = convertUndefinedToNull({
       ...body,
       startDate: body.startDate ? new Date(body.startDate) : undefined,
       endDate: body.endDate ? new Date(body.endDate) : undefined,
-    };
+    });
     const currentUserUid = req.user.uid;
     console.log("Current user from controller: ", req.user.uid);
+    console.log("From controller:", body);
 
     const task = await TaskService.create(currentUserUid, taskData);
 
@@ -110,6 +112,22 @@ export class TaskController extends BaseController {
     return super.getOk({
       message: "Task Retrieved Successfully",
       data: this.serializeTask(task),
+    });
+  }
+
+  @SuccessResponse("200", "Users Retrieved Successfully")
+  @Middlewares([authorize("read_task")])
+  @Get("{taskUid}/assigned_Users")
+  public async getUsersByTaskUid(
+    // @Request() req: ExRequest,
+    @Path() taskUid: string
+  ) {
+    console.log("From Controller: ", taskUid);
+    const task = await TaskService.getUsersByTaskUid(taskUid);
+
+    return super.getOk({
+      message: "Task Retrieved Successfully",
+      data: TaskDTO.tasksAssignedUsers(task),
     });
   }
 
@@ -170,11 +188,13 @@ export class TaskController extends BaseController {
       endDate: body.endDate ? new Date(body.endDate) : undefined,
     };
 
+    console.log("From controller:", patchData);
     const updatedTask = await TaskService.patch(user.uid, taskUid, patchData);
 
     return super.putOk({
       message: "Task Updated Successfully",
-      data: this.serializeTask(updatedTask),
+      data: TaskDTO.single(updatedTask),
+      // data: this.serializeTask(updatedTask),
     });
   }
 
